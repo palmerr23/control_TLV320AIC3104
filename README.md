@@ -78,7 +78,7 @@ Called without arguments, enable( ) configures all attached CODEC control regist
 
 enable(codec) may be useful when debugging hardware.
 
-### inputMode(mode, codec)
+### inputMode(inputModes mode, int8_t codec)
 
 Set single-ended (AIC_SINGLE) or differential (AIC_DIFF) input mode.
 
@@ -88,7 +88,7 @@ When called after enable( ), all CODECS (codec = -1) or a single CODEC may be af
 
 In differential mode '-' inputs should be grounded for unbalanced signals to reduce noise.
 
-### inputSelect(value, channel, codec)
+### inputSelect(int level, int8_t channel, int8_t codec)
 
 The balanced inputs (L1) are used for both mic and line inputs. PGA gain is adjustable between 0 and 59.5 dB.
 
@@ -96,7 +96,7 @@ Compliant with the Teensy audioControl standard and the SGTL5000 implementation,
 
 For finer gain control, use inputLevel( ).
 
-### inputLevel(value, channel, codec) and gain(value, channel, codec)
+### inputLevel(float gainVal, int8_t channel, int8_t codec) and gain(gainVal, channel, codec)
 
 The balanced inputs (L1) are used for both mic and line inputs. PGA gain is adjustable between 0 and 59.5 dB.
 
@@ -106,7 +106,7 @@ For inputLevel( ) the range is -59.9 to 0 dB.
 
 For gain( ) the range is 0 to 59 dB.
  
-Values outside these ranges are appropriately constrained. 
+Values outside these ranges are constrained. 
 
 When called without channel and codec arguments, all codecs and channels are affected.
 
@@ -122,13 +122,13 @@ Input channel DC removal filter.
 3 = 0.025  Fs (1.1 Hz)
 ```
 
-### volume(value, channel, codec)
+### volume(float value, int8_t channel, int8_t codec)
 
-Sets the volume of an output channel. 
+Sets the volume of an output channel. The range is 0.0 .. 1.0 
  
 When called without channel and codec arguments, all codecs and channels are affected.
 
-For most applications, using other means to control the output level is preferable to changing the default volume level using this function.
+For most applications, using other means to control the output level is preferable to changing the default volume level using this function, due to the increase in digital noise.
 
 ## Hardware validation and debugging
 
