@@ -112,11 +112,11 @@ When called without channel and codec arguments, all codecs and channels are aff
 
 ### setHPF(uint8_t option, int8_t channel = -1, int8_t codec = -1)
 Input channel DC removal filter.
->0 = off	- power on default
->1 = 0.0045 Fs (0.2 Hz @ Fs = 44.1kHz) - library default
->2 = 0.0125 Fs (0.5 Hz)
->3 = 0.025  Fs (1.1 Hz)
-
+'''0 = off	- power on default
+1 = 0.0045 Fs (0.2 Hz @ Fs = 44.1kHz) - library default
+2 = 0.0125 Fs (0.5 Hz)
+3 = 0.025  Fs (1.1 Hz)
+'''
 ### volume(value, channel, codec)
 
 Sets the volume of an output channel. 
