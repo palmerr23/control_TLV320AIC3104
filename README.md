@@ -44,15 +44,21 @@ The TDMA driver operates in the same way as the standard Teensy Audio TDM driver
 
 ### Constructor
 
-```AudioControlTLV320AIC3104 aic(uint8_t codecs = 1, bool useMCLK = true, uint8_t i2sMode = AICMODE_I2S,  long sampleRate = 44100, int sampleLength = 16);```
+```
+AudioControlTLV320AIC3104 aic(uint8_t codecs = 1, bool useMCLK = true, uint8_t i2sMode = AICMODE_I2S,  long sampleRate = 44100, int sampleLength = 16);
+```
 
 The simplest form for a single codec defaults to I2S mode with standard teensy audio parameters:
 
-```AudioControlTLV320AIC3104 aic( );```
+```
+AudioControlTLV320AIC3104 aic( );
+```
 
 For TDM operation the simplest form is: 
 
-```AudioControlTLV320AIC3104 aic(n); // (n > 1)```
+```
+AudioControlTLV320AIC3104 aic(n); // (n > 1)
+```
 
 ### AudioMemory( )
 
@@ -113,7 +119,8 @@ When called without channel and codec arguments, all codecs and channels are aff
 ### setHPF(uint8_t option, int8_t channel = -1, int8_t codec = -1)
 Input channel DC removal filter.
 
-```0 = off	- power on default
+```
+0 = off	- power on default
 
 1 = 0.0045 Fs (0.2 Hz @ Fs = 44.1kHz) - library default
 
@@ -135,7 +142,8 @@ For most applications, using other means to control the output level is preferab
 ### setVerbose(int verbosity)
 Sets the level of messages on stderr. 
 
-```0: turns messages off.
+```
+0: turns messages off.
 
 1: will provide some error messages on startup if the hardware doesn't match the supplied number of CODECs, etc.
 
@@ -157,7 +165,8 @@ Should be called after begin( ), where the muxes are probed and recorded.
 
 Processing a large number of channels can lead to substantial CPU loads.
 
-```16 output channels driven by a single sine generator, and no inputs processed consumes 12% CPU on a T4.0
+```
+16 output channels driven by a single sine generator, and no inputs processed consumes 12% CPU on a T4.0
 
 Adding 2 channels of peak readings increases it to 35%.
 
