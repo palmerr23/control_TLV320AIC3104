@@ -1,10 +1,10 @@
-# Teensy Audio TLV320AIC3104 8x8 CODEC Board audioControl library
+# Teensy Audio TLV320AIC3104 8x8 CODEC Board Control library
 
-An Arduino-compatible library for the Texas Instruments TLV320AIC3104 stereo channel CODEC.
-
-This CODEC is TDM-compatible as can be programmed to offset its read/write slots to anywhere in a 256 slot TDM cycle and put the DO line in a Hi-Z state when not transmitting.
+A Teensy Audio Control library for the Texas Instruments TLV320AIC3104 stereo channel CODEC. This CODEC is TDM-compatible as can be programmed to offset its read/write slots to anywhere in a 256 slot TDM cycle and put the DO line in a Hi-Z state when not transmitting.
 
 The library was created specifically for the associated four-CODEC Teensy Audio board (https://github.com/palmerr23/Teensy8x8AudioBoard). As the AIC320 only supports a single I2C address, there is some code to ensure the correct CODEC is being programmed via a multiplexed I2C bus.
+
+The library contains drivers for the PCA9546 I2C multiplexer.
 
 It can also support a single AIC3104 in I2S mode.
 
@@ -112,11 +112,16 @@ When called without channel and codec arguments, all codecs and channels are aff
 
 ### setHPF(uint8_t option, int8_t channel = -1, int8_t codec = -1)
 Input channel DC removal filter.
+
 ```0 = off	- power on default
+
 1 = 0.0045 Fs (0.2 Hz @ Fs = 44.1kHz) - library default
+
 2 = 0.0125 Fs (0.5 Hz)
+
 3 = 0.025  Fs (1.1 Hz)
 ```
+
 ### volume(value, channel, codec)
 
 Sets the volume of an output channel. 
@@ -130,11 +135,12 @@ For most applications, using other means to control the output level is preferab
 ### setVerbose(int verbosity)
 Sets the level of messages on stderr. 
 
-0 turns messages off.
+```0: turns messages off.
 
-1 will provide some error messages on startup if the hardware doesn't match the supplied number of CODECs, etc.
+1: will provide some error messages on startup if the hardware doesn't match the supplied number of CODECs, etc.
 
-2 provides additional messages as hardware is enabled or values changed 
+2: provides additional messages as hardware is enabled or values changed 
+```
 
 Should be left at the default (0) for production, as the writes may block execution if USB isn't connected.
 
@@ -145,18 +151,18 @@ Should be called after begin( ), where the muxes are probed and recorded.
 
 ## Examples
 - Basic operation including dynamic patching of inputs and outputs
-- Network transport
+- Network transport using the VBAN protocol https://vb-audio.com/Voicemeeter/vban.htm
 
 ## CPU Load
 
 Processing a large number of channels can lead to substantial CPU loads.
 
-16 output channels driven by a single sine generator, and no inputs processed consumes 12% CPU on a T4.0
+```16 output channels driven by a single sine generator, and no inputs processed consumes 12% CPU on a T4.0
 
 Adding 2 channels of peak readings increases it to 35%.
 
 8 channels = 66%
 
 16 channels = 110%. Despite the CPU value the sine output remains stable.
-
+```
 
