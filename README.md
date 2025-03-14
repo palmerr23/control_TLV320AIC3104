@@ -9,7 +9,7 @@ The library was created specifically for the associated four-CODEC Teensy Audio 
 It can also support a single AIC3104 in I2S mode.
 
 ## Compatibility
-Arduino 2.x with Teensyduino 1.59 or later and the supplied TDMA driver.
+Arduino 4.x with Teensyduino 1.59 or later and the supplied TDMA driver.
 
 ## Single CODEC operation
 Call audioMode() with the first parameter set to 1 prior to enable( ).
