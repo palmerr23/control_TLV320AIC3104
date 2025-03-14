@@ -12,7 +12,7 @@ It can also support a single AIC3104 in I2S mode.
 Arduino 4.x with Teensyduino 1.59 or later and the supplied TDMA driver.
 
 ## Single CODEC operation
-Call audioMode() with the first parameter set to 1 prior to enable( ).
+Call audioMode( ) with the first parameter set to 1 prior to enable( ).
 
 I2S mode is the default for single codecs, however TDM may be selected.
 
@@ -44,15 +44,15 @@ The TDMA driver operates in the same way as the standard Teensy Audio TDM driver
 
 ### Constructor
 
-AudioControlTLV320AIC3104 aic(uint8_t codecs = 1, bool useMCLK = true, uint8_t i2sMode = AICMODE_I2S,  long sampleRate = 44100, int sampleLength = 16);
+```AudioControlTLV320AIC3104 aic(uint8_t codecs = 1, bool useMCLK = true, uint8_t i2sMode = AICMODE_I2S,  long sampleRate = 44100, int sampleLength = 16);```
 
 The simplest form for a single codec defaults to I2S mode with standard teensy audio parameters:
 
-AudioControlTLV320AIC3104 aic();
+```AudioControlTLV320AIC3104 aic( );```
 
 For TDM operation the simplest form is: 
 
-AudioControlTLV320AIC3104 aic(n); //(n > 1)
+```AudioControlTLV320AIC3104 aic(n); // (n > 1)```
 
 ### AudioMemory( )
 
