@@ -11,27 +11,34 @@ It can also support a single AIC3104 in I2S mode.
 ## Compatibility
 Arduino 4.x with Teensyduino 1.59 or later and the supplied TDMA driver.
 
-## Single CODEC operation
-Call audioMode( ) with the first parameter set to 1 prior to enable( ).
+## Single CODEC I2S operation 
+I2S mode is the default for single codecs, however TDM may be selected using the i2sMode argument.
 
-I2S mode is the default for single codecs, however TDM may be selected.
+In I2S mode, the first CODEC on the mux with the lowest I2C address will be programmed. Other CODECs present will be reset on enable().
 
-The first CODEC on the mux with the lowest I2C address will be used.
-
-Avoid the more complex forms of the various function calls, accepting the default arguments where they are available.
+In I2S mode, avoid the more complex forms of the various function calls, accepting the default arguments where they are available.
 
 ## TDM operation with multiple CODECs
-With the current Teensy Audio TDM driver and the TDMA driver supplied with this library, two stacked boards are practical, providing 16x16 operation.
+With the TDMA driver supplied with this library, two stacked boards are practical, providing 16x16 operation.
+
+With the default Teensy Audio TDM  driver, odd numbered channel data will be corrupted.
 
 A PCA9544 I2C multiplexer selects one of the four CODECs on each board.
-There are on-board jumpers to theoretically allow up to eight muxes (boards) to be stacked with a single Teensy. Boards may have any address within the range. Probing on start-up will assign audio channel TDM slots in increasing order of discovered mux addresses.
+
+There are three on-board jumpers to theoretically allow up to eight muxes (boards) to be stacked with a single Teensy. 
+
+Boards may have any address within the range. Probing on start-up will assign audio channel TDM slots in increasing order of discovered mux addresses.
 
 _As of Teensyduino 1.59, EVEN channel samples are not transferred correctly by the Teensy Audio TDM driver. The TDMA driver supplied with this library corrects this issue._
 
 While up to eight boards may theoretically be stacked, there is a practical limit with the standard Teensy Audio Library TDM driver which provides a 16 x 16-bit duplex TDM interface - that is two 8x8 boards. (Note 
 Alternate Audio libraries, such as that managed by Jonathan Oakley https://github.com/h4yn0nnym0u5e/Audio/tree/feature/multi-TDM, provide the ability to support more channels.
 
-At a hardware level, there are jumpers on the PCB to allow alternate DI/DO pins to be used. This feature is untested and the Teensy may not be able to drive more than two boards simultaneously, due to reflections and distortion of the high frequency signals by multiple long PCB tracks. Please read the hardware notes in this repo before using this feature.
+As more than two stacked boards has not been tested, it is possible that the DI and DO signals may be corrupted because of long signal paths. On each board the 0 ohm jumpers at R5 and R7 may be replaced by 47 ohm resistors.
+
+At a hardware level, there are also jumpers on the PCB to allow alternate DI/DO pins to be used. This feature is untested and the Teensy may not be able to drive more than two boards simultaneously, due to reflections and distortion of the high frequency signals by multiple long PCB tracks. 
+
+Please read the hardware notes in this repo before attempting to stack more than two boards or use alternate DI/DO pins.
 
 ## Available Hardware
 
