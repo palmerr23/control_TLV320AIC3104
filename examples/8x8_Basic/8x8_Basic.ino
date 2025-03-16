@@ -91,6 +91,6 @@ void loop()
   {
     vTimer = millis();
     Serial.printf("T %l3i: %1.3f %1.3f - ", millis()/1000, peakRead0.read(), peakRead1.read());  
-    Serial.printf("audioProc %2.1f%%, audioMem %i\n", AudioProcessorUsage()*100.0, AudioMemoryUsage()); 
+    Serial.printf("audioProc %2.1f%%, audioMem %i\n", AudioProcessorUsage(), AudioMemoryUsage()); 
   }
 }

@@ -91,6 +91,6 @@ void loop()
     for(int i = 0; i < PEAKS; i++)
       Serial.printf("%1.3f%s", peakRead[i].read(), (i % 4 == 3)? " | " : ", ");
 #endif
-    Serial.printf("audioProc %2.1f%%, audioMem %i\n", AudioProcessorUsage()*100.0, AudioMemoryUsage()); 
+    Serial.printf("audioProc %2.1f%%, audioMem %i\n", AudioProcessorUsage(), AudioMemoryUsage()); 
   }
 }
