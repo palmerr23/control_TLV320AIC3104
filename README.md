@@ -170,15 +170,14 @@ Should be called after begin( ), where the muxes are probed and recorded.
 
 ## CPU Load
 
-Processing a large number of channels can lead to substantial CPU loads.
+CPU load for the basic TDM transfers is low. 
 
-```
-16 output channels driven by a single sine generator, and no inputs processed consumes 12% CPU on a T4.0
+* 16 output channels driven by a single sine generator, and no inputs processed consumes 0.12% CPU on a T4.0
 
-Adding 2 channels of peak readings increases it to 35%.
+* Adding 2 channels of peak readings increases it to 0.35%.
 
-8 channels = 66%
+* 8 channels = 0.66%
 
-16 channels = 110%. Despite the CPU value the sine output remains stable.
-```
+* 16 channels = 1.1%
+
 
