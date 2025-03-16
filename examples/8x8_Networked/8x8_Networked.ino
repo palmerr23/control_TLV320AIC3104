@@ -6,7 +6,7 @@
  * Outputs connected to a single sine generator
  * Newtorked and Audio outputs
  * Multi-channel audio creates a significant amount of network traffic. An isolated audio-only network may have less dropouts. 
- * Wireless networs are not recommended as the "guaranteed delivery" mechanisms used can result in  poor performance. 
+ * Wireless networks are not recommended as the "guaranteed delivery" mechanisms used can result in  poor performance. 
  * Inputs connected to peak reading analyzers
  */
 
@@ -58,7 +58,7 @@ void setup()
   AudioMemory(AUDIO_BLOCKS);
   Serial.begin(115200);
   delay(2000);
-  Serial.println("\n\nT4 TDM AIC3104 example - 8x8 Ethrenet");
+  Serial.println("\n\nT4 TDM AIC3104 example - 8x8 Ethernet");
   char myHost[] = "Teensy1";
   ether1.setHostName(myHost);
   ether1.begin();
@@ -123,7 +123,7 @@ void loop()
     for(int i = 0; i < PEAKS; i++)
       Serial.printf("%1.3f%s", peakRead[i].read(), (i % 4 == 3)? " | " : ", ");
 #endif
-    Serial.printf("audioProc %2.1f%%, audioMem %i\n", AudioProcessorUsage()*100.0, AudioMemoryUsage()); 
+    Serial.printf("audioProc %2.1f%%, audioMem %i\n", AudioProcessorUsage(), AudioMemoryUsage()); 
     //Serial.printf("LinkIs Up %i, IP ", ether1.linkIsUp());
    // Serial.println(ether1.getMyIP());
     printActiveStreams(STREAM_IN);
