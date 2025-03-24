@@ -115,7 +115,7 @@ For finer gain control, use inputLevel( ).
 
 and
 
-### gain(gainVal, channel, codec)
+### gain(float gainVal, int8_t channel, int8_t codec)
 
 The two functions are equivalent, setting the maximum input level or gain of an input channel. 
 
