@@ -215,7 +215,7 @@ private:
 	uint8_t _mux_I2C_address[MUX_MAX]; 
 	uint8_t _activeMuxes = 0;
 	
-	inputModes _inputMode = AIC_SINGLE;	
+	inputModes _inputMode = AIC_DIFF;	
 	uint8_t _i2sMode = AICMODE_I2S;
 	uint32_t _sampleRate = 44100;	
 	uint32_t _baseRate = 44100;
