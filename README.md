@@ -103,6 +103,8 @@ In differential mode '-' inputs should be grounded for unbalanced signals to red
 
 When differential input signals are connected in single-ended mode, crosstalk will occur between channels due to the CODEC's internal multiplexing (see Fig 10-13, p36).
 
+The library defaults to differential mode to avoid this issue, at a small cost to noise performance.
+
 ### inputSelect(int level, int8_t channel, int8_t codec)
 
 The balanced inputs (L1) are used for both mic and line inputs. PGA gain is adjustable between 0 and 59.5 dB.
