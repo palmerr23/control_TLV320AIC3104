@@ -40,10 +40,10 @@ At a hardware level, there are also jumpers on the PCB to allow alternate DI/DO 
 
 Please read the hardware notes in this repo before attempting to stack more than two boards or use alternate DI/DO pins.
 
+
 ## Available Hardware
 
 The hardware is described at https://github.com/palmerr23/Teensy8x8AudioBoard
-
 
 # Function Reference
 
@@ -101,19 +101,25 @@ When called after enable( ), all CODECS (codec = -1) or a single CODEC may be af
 
 In differential mode '-' inputs should be grounded for unbalanced signals to reduce noise.
 
+When differential input signals are connected in single-ended mode, crosstalk will occur between channels due to the CODEC's internal multiplexing (see Fig 10-13, p36).
+
 ### inputSelect(int level, int8_t channel, int8_t codec)
 
 The balanced inputs (L1) are used for both mic and line inputs. PGA gain is adjustable between 0 and 59.5 dB.
 
-Compliant with the Teensy audioControl standard and the SGTL5000 implementation, this sets an input to either MIC (-59.5 dB [-62.5 dBm]) or Line (0 dB [-2.5 dBm]).
+Compliant with the Teensy audioControl standard and the SGTL5000 implementation, this sets an input to either MIC (-59.5 dB [-62.5 dBm]) or LINE (0 dB [-2.5 dBm]).
 
 For finer gain control, use inputLevel( ).
 
-### inputLevel(float gainVal, int8_t channel, int8_t codec) and gain(gainVal, channel, codec)
+### inputLevel(float gainVal, int8_t channel, int8_t codec) 
 
-The balanced inputs (L1) are used for both mic and line inputs. PGA gain is adjustable between 0 and 59.5 dB.
+and
+
+###gain(gainVal, channel, codec)
 
 The two functions are equivalent, setting the maximum input level or gain of an input channel. 
+
+The CODEC's balanced inputs (LINE1Lx and LINE1Rx) are used for both mic and line inputs. PGA gain is adjustable between 0 and 59.5 dB.
 
 For inputLevel( ) the range is -59.9 to 0 dB.
 
@@ -179,5 +185,6 @@ CPU load for the basic TDM transfers is low.
 * 8 channels = 0.66%
 
 * 16 channels = 1.1%
+
 
 
