@@ -29,6 +29,8 @@
  * R. Palmer 2025
  */
 
+// VERSION 1.2
+
 #ifndef _TLV320AIC3104_H
 #define _TLV320AIC3104_H
 
@@ -156,7 +158,7 @@ public:
 	bool disable() { return stopAudio(); }// will disable all if in multi mode
 	bool stopAudio();	
 	bool DACpower(dacPwr pwr, int8_t codec = -1);  // Run before enable()
-	
+
 /* DAC - HPOUT and Line outs are controlled in tandem
  * LOP/ROP not used on default Teensy hardware
  */
@@ -175,16 +177,16 @@ public:
  * gain: 0.. 59.5
  * inputLevel: -59.5 .. 0
  */
-	bool gain(float gainVal, int8_t channel = -1, int8_t codec = -1); 	// 0..60dB gain range
-	bool inputLevel(float gainVal, int8_t channel = -1, int8_t codec = -1); // 0 to -59.5dB
+	uint8_t gain(float gainVal, int8_t channel = -1, int8_t codec = -1); 	// 0..60dB gain range
+	bool inputLevel(float gainVal, int8_t channel, int8_t); // 0 to -59.5dB
 	bool inputLevel(float gainVal){ return inputLevel(gainVal, -1, -1); } // see AudioControl.h
 
-	bool inputSelect(int level, int8_t channel = -1, int8_t codec = -1); 		// n=0: Line level, PGA gain = 0dB; n=1: Mic level, PGA gain = 59.5dB See inputLevel();
+	bool inputSelect(int level, int8_t channel, int8_t); 		// n=0: Line level, PGA gain = 0dB; n=1: Mic level, PGA gain = 59.5dB See inputLevel();
 	bool inputSelect(int level) { return inputSelect(level, -1, -1); } 		// see AudioControl.h
 	
 	// HPF will remove the DC offset from signal (P29 and P52)
-	bool setHPF(uint8_t option, int8_t channel = -1, int8_t codec = -1); // when issued before the codecs are enabled, all channels and codecs are set. Default is off.
-
+	bool setHPF(uint8_t option, int8_t channel = -1, int8_t codec = -1); // DEPRECATED - filter corner frequencies too high. When issued before the codecs are enabled, all channels and codecs are set. Default is off
+	void HPF(int freq, int8_t channel = -1, int8_t codec = -1);
 	void setVerbose(int verbosity); // 0 = off Diagnostics. 1 and 2 are increasingly verbose. Beware, this will block if USB Serial isn't connected.
 
 	// only used for debugging
@@ -194,9 +196,9 @@ protected:
 	TwoWire *_i2c = &Wire;
 	bool volumeInteger(int gainStep, int8_t channel = -1, int8_t codec = -1);
 
-	bool gainInteger(uint8_t gainStep, int8_t channel = -1, int8_t codec = -1); // in PGA steps (p 50)
+	uint8_t gainInteger(uint8_t gainStep, int8_t channel = -1, int8_t codec = -1); // in PGA steps (p 50)
 	uint8_t gainToStep(float gain);  // converts dB gain to register setting
-
+	void setRegPage(uint8_t newPage, uint8_t codec); // change the page register
 	
 private:
 	void resetCodecs(void); // reset all the codecs to a known state
@@ -216,6 +218,7 @@ private:
 	uint8_t _activeMuxes = 0;
 	
 	inputModes _inputMode = AIC_DIFF;	
+	uint8_t _gainStep	= 0;	// 0dB gain default
 	uint8_t _i2sMode = AICMODE_I2S;
 	uint32_t _sampleRate = 44100;	
 	uint32_t _baseRate = 44100;
@@ -223,7 +226,7 @@ private:
 	int _sampleLength = 16;			// only 16 bits tested
 	bool _usingMCLK = true;
 	dacPwr _dacPower = DAC_DEF;	
-	uint8_t _hpfDefault = AIC_HPF_0045; // enabled at lowest freq
+	uint8_t _hpfDefault = AIC_HPF_DISABLE; // disabled
 
 	int _lastCodec = -1; 	// used by muxDecode (force change on first use)
 	int _lastBoard = -1;
