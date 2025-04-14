@@ -183,7 +183,7 @@ public:
 	bool inputSelect(int level) { return inputSelect(level, -1, -1); } 		// see AudioControl.h
 	
 	// HPF will remove the DC offset from signal (P29 and P52)
-	bool setHPF(uint8_t option, int8_t channel = -1, int8_t codec = -1); // when issued before the codecs are enabled, all channels and codecs are set. Default is Fo = 0.0045 Fs
+	bool setHPF(uint8_t option, int8_t channel = -1, int8_t codec = -1); // when issued before the codecs are enabled, all channels and codecs are set. Default is off.
 
 	void setVerbose(int verbosity); // 0 = off Diagnostics. 1 and 2 are increasingly verbose. Beware, this will block if USB Serial isn't connected.
 
