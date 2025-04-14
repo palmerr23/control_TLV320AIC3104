@@ -72,6 +72,9 @@ void AudioControlTLV320AIC3104::HPF(int freq, int8_t channel, int8_t codec)
 
 	switch (freq)
 	{
+		case 0:
+			f = 999;
+			break;
 		case 10:
 			f = 0;
 			break;
@@ -94,24 +97,29 @@ void AudioControlTLV320AIC3104::HPF(int freq, int8_t channel, int8_t codec)
 		cst = codec;
 		cend = cst + 1;
 	}
-	setRegPage(1, codec); // ADC HPF coefficient registers are in Reg Page 1
-	Serial.printf("Set HPF row %i for codecs %i to %i, channel %i\n", f, cst, cend, channel);
-	for(int cod = cst; cod < cend; cod++)
-		for(int i = 0; i < 6; i++)
-		{
-			if(channel & 1)
-				writeRegister(65+i, bq[f].coeff[i], cod);
-			if(channel & 2)
-				writeRegister(71+i, bq[f].coeff[i], cod);
-		}
-	setRegPage(0, codec); // back to Page 0
-	
-	Serial.printf("Set ADC HPF row %i for codecs %i to %i, channel %i\n", f, cst, cend, channel);
+	if( f < 100) // only need to program coefficients if HPF is being turned on 
+	{
+		setRegPage(1, codec); // ADC HPF coefficient registers are in Reg Page 1
+		Serial.printf("Set HPF row %i for codecs %i to %i, channel %i\n", f, cst, cend, channel);
+		for(int cod = cst; cod < cend; cod++)
+			for(int i = 0; i < 6; i++)
+			{
+				if(channel & 1)
+					writeRegister(65+i, bq[f].coeff[i], cod);
+				if(channel & 2)
+					writeRegister(71+i, bq[f].coeff[i], cod);
+			}
+		setRegPage(0, codec); // back to Page 0
+	}
+	Serial.printf("%s ADC HPF for codecs %i to %i, channel %i\n", (f < 100) ? "ENABLE" : "DISABLE", cst, cend, channel);
 	uint8_t val = 0x30 | (channel & 3) << 6;	// top two bits + reserved (p77)
 	for(int cod = cst; cod < cend; cod++)
 	{
 				writeRegister(107, val, cod); // use coefficients instead of defaults (p29)
-				writeRegister(12, 0xf0, cod); // turn on HPF
+				if(f < 100)
+					writeRegister(12, 0xf0, cod); // turn on HPF
+				else 
+					writeRegister(12, 0, cod); // turn off HPF
 	}
 }
 
