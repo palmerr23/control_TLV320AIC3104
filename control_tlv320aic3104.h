@@ -192,13 +192,14 @@ public:
 	// only used for debugging
 	void muxDecode(uint8_t codec);
 	int readRegister(uint8_t reg, uint8_t codec);
+	void setRegPage(uint8_t newPage, int8_t codec = -1); // change the page register
 protected:
 	TwoWire *_i2c = &Wire;
 	bool volumeInteger(int gainStep, int8_t channel = -1, int8_t codec = -1);
 
 	uint8_t gainInteger(uint8_t gainStep, int8_t channel = -1, int8_t codec = -1); // in PGA steps (p 50)
 	uint8_t gainToStep(float gain);  // converts dB gain to register setting
-	void setRegPage(uint8_t newPage, uint8_t codec); // change the page register
+
 	
 private:
 	void resetCodecs(void); // reset all the codecs to a known state

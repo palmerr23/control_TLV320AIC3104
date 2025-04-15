@@ -200,7 +200,7 @@ void AudioControlTLV320AIC3104::writeR10(uint8_t codec)	// p51
 
 
 // Change the page register for a single CODEC or all
-void AudioControlTLV320AIC3104::setRegPage(uint8_t newPage, uint8_t codec)
+void AudioControlTLV320AIC3104::setRegPage(uint8_t newPage, int8_t codec)
 {
 	int cst, cend;
 	newPage = constrain(newPage, 0, 1);
