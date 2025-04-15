@@ -62,7 +62,7 @@ struct bi_quad {
 	int freq;
 	uint8_t coeff[6];	// N0 MSB, N0 LSB, N1 MSB, N1 LSB, D1 MSB, D1 LSB
 }
-bq[3] = {{10, {0x7F, 0XE7, 0X90, 0X19, 0X7F, 0XD0}},
+bq[3] = {{10, {0x7F, 0XE7, 0X80, 0X19, 0X7F, 0XD0}},
 				 {20, {0x7F, 0XD0, 0X80, 0X30, 0X7F, 0XA1}},
 				 {50, {0x7F, 0X8A, 0X80, 0X76, 0X7F, 0X16}}
 				};
