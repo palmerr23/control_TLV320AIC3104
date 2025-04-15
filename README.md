@@ -129,9 +129,16 @@ For gain( ) the range is 0 to 59 dB.
  
 Values outside these ranges are constrained. 
 
-When called without channel and codec arguments, all codecs and channels are affected.
+When called without channel and codec arguments, all codecs and channels are affected. 
 
-### setHPF(uint8_t option, int8_t channel = -1, int8_t codec = -1)
+### HPF(int frequency, int8_t channel = -1, int8_t codec = -1)
+Four programmable HPF filter frequencies are available: 0 Hz (HPF disabled), 10Hz, 20Hz and 50Hz.
+
+When called without channel and codec arguments, all codecs and channels are affected. 
+
+The function should be called after the CODEC is enabled.
+
+### setHPF(uint8_t option, int8_t channel = -1, int8_t codec = -1) -- DEPRECATED
 Input channel DC removal filter. These standard digital filter settings are not very useful for audio use, due to the high corner frequencies.
 
 ```
