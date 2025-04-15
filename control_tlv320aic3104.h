@@ -177,7 +177,7 @@ public:
  * gain: 0.. 59.5
  * inputLevel: -59.5 .. 0
  */
-	uint8_t gain(float gainVal, int8_t channel = -1, int8_t codec = -1); 	// 0..60dB gain range
+	bool gain(float gainVal, int8_t channel = -1, int8_t codec = -1); 	// 0..60dB gain range
 	bool inputLevel(float gainVal, int8_t channel, int8_t); // 0 to -59.5dB
 	bool inputLevel(float gainVal){ return inputLevel(gainVal, -1, -1); } // see AudioControl.h
 
@@ -197,7 +197,7 @@ protected:
 	TwoWire *_i2c = &Wire;
 	bool volumeInteger(int gainStep, int8_t channel = -1, int8_t codec = -1);
 
-	uint8_t gainInteger(uint8_t gainStep, int8_t channel = -1, int8_t codec = -1); // in PGA steps (p 50)
+	bool gainInteger(uint8_t gainStep, int8_t channel = -1, int8_t codec = -1); // in PGA steps (p 50)
 	uint8_t gainToStep(float gain);  // converts dB gain to register setting
 
 	
