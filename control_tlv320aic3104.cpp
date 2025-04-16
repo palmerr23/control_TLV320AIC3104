@@ -192,10 +192,10 @@ void AudioControlTLV320AIC3104::writeR9(uint8_t codec)		// p51
 // TDM slot offset
 void AudioControlTLV320AIC3104::writeR10(uint8_t codec)	// p51
 {
-		uint8_t val = (codec << AIC_TM_SLOT_SHIFT) + AIC_FIRST_SLOT; // TDM offset in 16 bit slots, 2 per codec
-		if(_i2sMode == AICMODE_TDM)
-			val += AIC_TDM_OFFSET;
-		writeRegister(10, val, codec);
+	uint8_t val = (codec * 2 * _sampleLength) + AIC_FIRST_SLOT; // TDM offset in sample length slots, 2 per codec
+	if(_i2sMode == AICMODE_TDM)
+		val += AIC_TDM_OFFSET;
+	writeRegister(10, val, codec);
 }
 
 
