@@ -2,7 +2,7 @@
  * AudioControlTLV320AIC3104.cpp
  * 1 or more TLV320AIC3104 CODECS + PCA9546 I2C mux
  * Teensy Audio Library compatible
- * I2S/TDM handled elswewhere
+ * I2S/TDM transfers handled elswewhere
  
 	* This software is published under the MIT Licence
 	* R. Palmer 2025
