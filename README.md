@@ -132,9 +132,15 @@ Values outside these ranges are constrained.
 When called without channel and codec arguments, all codecs and channels are affected. 
 
 ### HPF(int frequency, int8_t channel = -1, int8_t codec = -1)
-Four programmable HPF filter frequencies are available: 0 Hz (HPF disabled), 10Hz, 20Hz and 50Hz.
+HPF frequencies may be set between 1Hz and 5kHz.
+
+Less than 1 Hz will turn the HPF off.
+
+The effectiveness of HPF frequencies less than 10Hz is untested.
 
 When called without channel and codec arguments, all codecs and channels are affected. 
+
+channel is a bit map with 1 = left, 2 = right, 3 = both channels.
 
 The function should be called after the CODEC is enabled.
 
@@ -143,11 +149,8 @@ Input channel DC removal filter. These standard digital filter settings are not 
 
 ```
 0 = off	- power on default
-
-1 = 0.0045 Fs (198 Hz @ Fs = 44.1kHz) - library default
-
+1 = 0.0045 Fs (198 Hz @ Fs = 44.1kHz) 
 2 = 0.0125 Fs (551 Hz)
-
 3 = 0.025  Fs (1102 Hz)
 ```
 

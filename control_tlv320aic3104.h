@@ -64,7 +64,7 @@
 #define AIC_TDM_OFFSET	1			// Teensy Audio: invert BCLK, offset slots by 1 BCLK
 #define AIC_FIRST_SLOT	0 		// shift first CODEC for testing later slots
 #define AIC_TDM_CLOCKS	256		// 16 x 16-bit slots
-#define AIC_TM_SLOT_SHIFT 5 	// (2 x 16 = 32 bits)
+#define AIC_TM_SLOT_SHIFT 5 	// (2 x 16 = 32 bits for 2 channels)
 
 #define AICWORD_16			0x0
 #define AICWORD_20			0x1
@@ -99,7 +99,7 @@
 #define AIC_HPF_0045				0x01  	// Set as default to remove DC offset: -3dB @ 0.2 Hz 
 #define AIC_HPF_0125				0x02		// -3dB @ 0.5 Hz
 #define AIC_HPF_025					0x03		// most aggressive -3dB @ 1 Hz
-
+#define AIC_HPF_UPPER 5000				  // arbitrary upper limit. Up to fS/2 may be OK
 #define AIC_PO_BG						0x02		// drive power off VCM output to band gap ref (p36)
 #define AIC_15V							0x40		// HP VCM 1.5V (p639)
 #define AIC_PO_100MS				0x60		// 100 mS HP power on
@@ -177,7 +177,7 @@ public:
  * gain: 0.. 59.5
  * inputLevel: -59.5 .. 0
  */
-	bool gain(float gainVal, int8_t channel = -1, int8_t codec = -1); 	// 0..60dB gain range
+	uint8_t gain(float gainVal, int8_t channel = -1, int8_t codec = -1); 	// 0..60dB gain range
 	bool inputLevel(float gainVal, int8_t channel, int8_t); // 0 to -59.5dB
 	bool inputLevel(float gainVal){ return inputLevel(gainVal, -1, -1); } // see AudioControl.h
 
@@ -197,7 +197,7 @@ protected:
 	TwoWire *_i2c = &Wire;
 	bool volumeInteger(int gainStep, int8_t channel = -1, int8_t codec = -1);
 
-	bool gainInteger(uint8_t gainStep, int8_t channel = -1, int8_t codec = -1); // in PGA steps (p 50)
+	uint8_t gainInteger(uint8_t gainStep, int8_t channel = -1, int8_t codec = -1); // in PGA steps (p 50)
 	uint8_t gainToStep(float gain);  // converts dB gain to register setting
 
 	

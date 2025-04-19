@@ -2,7 +2,7 @@
  * AudioControlTLV320AIC3104.cpp
  * 1 or more TLV320AIC3104 CODECS + PCA9546 I2C mux
  * Teensy Audio Library compatible
- * I2S/TDM transfers handled elswewhere
+ * I2S/TDM transfers handled elsewhere
  
 	* This software is published under the MIT Licence
 	* R. Palmer 2025
@@ -192,14 +192,15 @@ void AudioControlTLV320AIC3104::writeR9(uint8_t codec)		// p51
 // TDM slot offset
 void AudioControlTLV320AIC3104::writeR10(uint8_t codec)	// p51
 {
-	uint8_t val = (codec * 2 * _sampleLength) + AIC_FIRST_SLOT; // TDM offset in sample length slots, 2 per codec
-	if(_i2sMode == AICMODE_TDM)
-		val += AIC_TDM_OFFSET;
-	writeRegister(10, val, codec);
+		uint8_t val = (codec * 2 * _sampleLength) + AIC_FIRST_SLOT; // TDM offset in sample length slots, 2 per codec
+		if(_i2sMode == AICMODE_TDM)
+			val += AIC_TDM_OFFSET;
+		writeRegister(10, val, codec);
 }
 
 
 // Change the page register for a single CODEC or all
+// Code accessing page 1 should always reset to page 0 on exit.
 void AudioControlTLV320AIC3104::setRegPage(uint8_t newPage, int8_t codec)
 {
 	int cst, cend;
@@ -217,7 +218,7 @@ void AudioControlTLV320AIC3104::setRegPage(uint8_t newPage, int8_t codec)
 	for(int cod = cst; cod < cend; cod++)
 		writeRegister(0, newPage, cod);
 	
-	Serial.printf("Set code page %i for codecs %i to %i\n", newPage, cst, cend);
+	// Serial.printf("Set register page %i for codecs %i to %i\n", newPage, cst, cend -1);
 }
 
 // *** Untested ***
