@@ -8,6 +8,8 @@ The library contains drivers for the PCA9546 I2C multiplexer.
 
 It can also support a single AIC3104 in I2S mode.
 
+V1.2
+
 ## Compatibility
 Arduino 4.x with Teensyduino 1.59 or later and the supplied TDMA driver.
 
