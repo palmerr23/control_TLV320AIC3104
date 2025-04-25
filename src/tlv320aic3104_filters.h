@@ -1,7 +1,6 @@
 /*
 TLV320AIC3104
 Filters
- *** UNTESTED ***
 	* This software is published under the MIT Licence
 	* R. Palmer 2025
 */
