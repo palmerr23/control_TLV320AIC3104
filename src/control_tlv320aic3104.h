@@ -29,7 +29,7 @@
  * R. Palmer 2025
  */
 
-// VERSION 1.2
+// VERSION 1.3
 
 #ifndef _TLV320AIC3104_H
 #define _TLV320AIC3104_H
@@ -105,6 +105,10 @@
 #define AIC_PO_100MS				0x60		// 100 mS HP power on
 #define AIC_PO_2S						0x90		// 2 Sec HP power on (avoid pop: slow charge output caps)
 
+#define AIC_R12_HPF_MASK		0xf0
+#define AIC_R12_EFF_MASK		0x0C
+#define AIC_R12_DEMPH_MASK	0x05
+
 #define AIC_ALL_CODECS 			-1
 
 #define TCA9546_BASE_ADDRESS 					 0x70
@@ -165,6 +169,21 @@ public:
 	bool volume(float vol) { return volume(vol, -1, -1); } // AudioControl.h
 	bool enableLineOut(bool enable, int8_t codec = -1); 
 	
+	// DAC output effects filters - as per Audio Library BiQuad
+	void setHighpass(int stage, float frequency, float q = 0.7071, int8_t channel = -1, int8_t codec = -1);
+	void setLowpass(int stage, float frequency, float q = 0.7071f, int8_t channel = -1, int8_t codec = -1);
+	void setBandpass(int stage, float frequency, float q = 1.0, int8_t channel = -1, int8_t codec = -1);
+	void setNotch(int stage, float frequency, float q = 1.0, int8_t channel = -1, int8_t codec = -1);
+	void setLowShelf(int stage, float frequency, float gain, float slope = 1.0f, int8_t channel = -1, int8_t codec = -1); 
+	// +/-12 dB may be a limit for shelf filters???
+	void setHighShelf(int stage, float frequency, float gain, float slope = 1.0f, int8_t channel = -1, int8_t codec = -1);
+	void setFlat(int stage, int8_t channel= -1, int8_t codec = -1);
+	void setFilterOff (int8_t channel = -1, int8_t codec = -1); // disable both DAC filter stages
+
+
+	void setCustomFilter(int stage, const int *coefx, int8_t channel = -1, int8_t codec = -1); // Standard 16-bit bi-quad in 32-bit integers
+	void setTIBQFilter(int stage, const int16_t *coefx, int8_t channel =  -1, int8_t codec = -1); // TIBQ coefficient format
+	void printDACfilters(int8_t channels = -1, int8_t codec = -1);
 /* ADC
  * When inputMode, inputlevel or setHPF commands are issued before enable() they set the defaults.
  * After enable() they changes whichever channels/codecs are selected.
@@ -185,7 +204,7 @@ public:
 	
 	// HPF will remove the DC offset from signal (P29 and P52)
 	bool setHPF(uint8_t option, int8_t channel = -1, int8_t codec = -1); // DEPRECATED - filter corner frequencies too high. When issued before the codecs are enabled, all channels and codecs are set. Default is off
-	void HPF(int freq, int8_t channel = -1, int8_t codec = -1);
+	void adcHPF(int freq, int8_t channel = -1, int8_t codec = -1); // disable: freq < 1 
 	void setVerbose(int verbosity); // 0 = off Diagnostics. 1 and 2 are increasingly verbose. Beware, this will block if USB Serial isn't connected.
 
 	// only used for debugging
@@ -198,7 +217,7 @@ protected:
 
 	uint8_t gainInteger(uint8_t gainStep, int8_t channel = -1, int8_t codec = -1); // in PGA steps (p 50)
 	uint8_t gainToStep(float gain);  // converts dB gain to register setting
-
+	void setDACfilter(int stage, const int *coefx, int8_t channel = -1, int8_t codec = -1);
 	
 private:
 	void resetCodecs(void); // reset all the codecs to a known state
@@ -227,7 +246,7 @@ private:
 	bool _usingMCLK = true;
 	dacPwr _dacPower = DAC_DEF;	
 	uint8_t _hpfDefault = AIC_HPF_DISABLE; // disabled
-
+	uint8_t _effDefault = AIC_HPF_DISABLE; // disabled
 	int _lastCodec = -1; 	// used by muxDecode (force change on first use)
 	int _lastBoard = -1;
 	int8_t _codecs = 1; // default to single CODEC mode	

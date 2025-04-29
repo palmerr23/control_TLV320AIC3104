@@ -120,8 +120,8 @@ bool AudioControlTLV320AIC3104::enableCodec(int8_t codec)
 //Serial.printf("Gain step %i (0x%02x) reads as 0x%02x for codec %i\n", _gainStep, _gainStep,readRegister(15, codec), codec);
 	// R19 R21: differential or SE input
 	inputMode(_inputMode, codec);
-	writeRegister(12, (_hpfDefault << 6) | (_hpfDefault << 4), codec);		// Reg 12:  Audio Codec Digital Filter (Default = HPF and Digital Effects filter disabled)
-	// Reg 107: Defaults are OK
+	writeRegister(12, (_hpfDefault << 6) | (_hpfDefault << 4) | (_effDefault << 2), codec);		// Reg 12:  Audio Codec Digital Filter (Default = HPF and Digital Effects filters disabled)
+	// Reg 107: Defaults are OK as HPF is disabled
 	
 	// enable Line1/2 in single-ended or differential mode	
 	writeR9(codec); 									// R9: Audio Serial Data Interface Control Register B
@@ -198,7 +198,6 @@ void AudioControlTLV320AIC3104::writeR10(uint8_t codec)	// p51
 		writeRegister(10, val, codec);
 }
 
-
 // Change the page register for a single CODEC or all
 // Code accessing page 1 should always reset to page 0 on exit.
 void AudioControlTLV320AIC3104::setRegPage(uint8_t newPage, int8_t codec)
@@ -247,5 +246,6 @@ bool AudioControlTLV320AIC3104::stopAudio()
 #include "tlv320aic3104_routeVol.h"
 #include "tlv320aic3104_pll.h" 
 #include "tlv320aic3104_filters.h" 
+#include "tlv320aic3104_DAC_filters.h"
 
 
