@@ -8,7 +8,9 @@ The library contains drivers for the PCA9546 I2C multiplexer.
 
 It can also support a single AIC3104 in I2S mode.
 
-V1.2
+Page references are to the TLV320AIC3104 datasheet, Feb 2021.
+
+V1.3
 
 ## Compatibility
 Arduino 4.x with Teensyduino 1.59 or later and the supplied TDMA driver.
@@ -133,7 +135,7 @@ Values outside these ranges are constrained.
 
 When called without channel and codec arguments, all codecs and channels are affected. 
 
-### HPF(int frequency, int8_t channel = -1, int8_t codec = -1)
+### adcHPF(int frequency, int8_t channel = -1, int8_t codec = -1)
 HPF frequencies may be set between 1Hz and 5kHz.
 
 Less than 1 Hz will turn the HPF off.
@@ -157,12 +159,86 @@ Input channel DC removal filter. These standard digital filter settings are not 
 ```
 
 ### volume(float value, int8_t channel, int8_t codec)
-
 Sets the volume of an output channel. The range is 0.0 .. 1.0 
  
 When called without channel and codec arguments, all codecs and channels are affected.
 
 For most applications, using other means to control the output level is preferable to changing the default volume level using this function, due to the increase in digital noise.
+
+## DAC effects filters
+The LTV320AIC3104 has two cascaded BiQuad filters available for each DAC channel.
+
+The filters below follow the Teensy Audio Library BiQuad filter format, wherever appropriate.
+
+Both stages are enabled or disabled together for each channel - see p32.
+
+When called without channel and codec arguments, all codecs and channels are affected. 
+
+The channel argument is a bit map with 1 = left, 2 = right, 3 or -1 = both channels.
+
+The functions should be called after the CODEC is enabled.
+
+Filters with gain must have their input signals attenuated, so the signal does not exceed 1.0
+
+This object implements up to 2 cascaded stages. As both cascaded BiQuad filters are enabled together, the parameters of both sections should be set before enabling. The hardware default settings may have strange results. 
+
+Biquad filters with low corner frequencies (under about 400 Hz) can run into trouble with limited numerical precision, causing the filter to perform poorly. For very low corner frequency, use the Audio Library's State Variable (Chamberlin) filter.
+
+Q > 2 can be problematic for some filter types. For greater depth, cascade two filters.
+
+### setFlat(int stage, int8_t channel = -1, int8_t codec = -1)
+Set one stage of the filter (0 or 1) with flat (all-pass) response.
+
+This is the same as the default value when the CODEC is reset.
+
+### setHighpass(int stage, float frequency, float q = 0.7071, int8_t channel = -1, int8_t codec = -1);
+Configure a stage of the filter (0 or 1) with high pass response, with the specified corner frequency and Q shape. If Q is higher that 0.7071, be careful of filter gain (see above).
+
+### setLowpass(int stage, float frequency, float q = 0.7071f, int8_t channel = -1, int8_t codec = -1);
+Configure a stage of the filter (0 or 1) with low pass response, with the specified corner frequency and Q shape. If Q is higher that 0.7071, be careful of filter gain (see above).
+
+### setBandpass(int stage, float frequency, float q = 1.0, int8_t channel = -1, int8_t codec = -1);
+Configure a stage of the filter (0 or 1) with band pass response. The filter has unity gain at the specified frequency. 
+
+Q controls the width of frequencies allowed to pass. 
+
+### setNotch(int stage, float frequency, float q = 1.0, int8_t channel = -1, int8_t codec = -1);
+Configure a stage of the filter (0 or 1) with band reject (notch) response. Q controls the width of rejected frequencies. Lower Q = wider frequency range, deeper notch.
+
+### setLowShelf(int stage, float frequency, float gain, float slope = 1.0f, int8_t channel = -1, int8_t codec = -1); 
+Configure a stage of the filter (0 or 1) with low shelf response. A low shelf filter attenuates or amplifies signals below the specified frequency. 
+
+Frequency controls the slope midpoint, gain is in dB and can be both positive or negative. 
+
+The slope parameter controls steepness of gain transition. A slope of 1 yields maximum steepness without overshoot, lower values yield a less steep slope. 
+
+See the picture below for a visualization of the slope parameter's effect. 
+
+Be careful with positive gains and slopes higher than 1 as they introduce gain (see warning below).
+
+### setHighShelf(int stage, float frequency, float gain, float slope = 1.0f, int8_t channel = -1, int8_t codec = -1);
+
+Configure a stage of the filter (0 or 1) with high shelf response. A high shelf filter attenuates or amplifies signals above the specified frequency. 
+
+Frequency controls the slope midpoint, gain is in dB and can be both positive or negative. 
+
+The slope parameter controls steepness of gain transition. A slope of 1 yields maximum steepness without overshoot, lower values yield a less steep slope. 
+
+See the picture below for a visualization of the slope parameter's effect. 
+
+Be careful with positive gains and slopes higher than 1 as they introduce gain (see warning below).
+
+![Shelf filter characteristics](images/shelf_filter.png)
+
+### setCustomFilter(int stage, const int *coefx, int8_t channel = -1, int8_t codec = -1) 
+A custom  biquad filter: which should be scaled to int16 in an int array.
+
+The order is N0, N1, N2, D1, D2 (D0 set in hardware)
+
+### setTIBQFilter(int stage, const int16_t *coefx, int8_t channel = -1, int8_t codec = -1) 
+A custom  biquad filter as generated by TIBQ.
+
+The order is N0, N1, N2, D1, D2 (D0 set in hardware).
 
 ## Hardware validation and debugging
 
