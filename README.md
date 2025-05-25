@@ -262,6 +262,8 @@ Should be called after begin( ), where the muxes are probed and recorded.
 
 ## Examples
 - Basic operation including dynamic patching of inputs and outputs
+- DAC filter capabilities
+- A matrix mixer: all inputs * all outputs 
 - Network transport using the VBAN protocol https://vb-audio.com/Voicemeeter/vban.htm
 
 ## CPU Load
