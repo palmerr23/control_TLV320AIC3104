@@ -1,5 +1,6 @@
 /* Audio Library for Teensy 3.X
-*** 16 bit samples correctly transferred (RP)
+ *** for 32 bit float samples and OpenAudio_Arduino library
+ *** 8 channels per frame
  * Copyright (c) 2017, Paul Stoffregen, paul@pjrc.com
  *
  * Development of this audio library was funded by PJRC.COM, LLC by sales of
@@ -26,28 +27,29 @@
  */
 
 #include <Arduino.h>
-#include "input_tdmA.h"
-#include "output_tdmA.h"
+#include "input_tdm32.h"
+#include "output_tdm32.h"
 #if defined(KINETISK) || defined(__IMXRT1062__)
 #include "utility/imxrt_hw.h"
 
+//************** upgrade to 64 bit DMA transfers ***********
 DMAMEM __attribute__((aligned(32)))
-static uint32_t tdm_rx_buffer[AUDIO_BLOCK_SAMPLES*16];
-audio_block_t * AudioInputTDM_A::block_incoming[16] = {
-	nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+static int32_t tdm_rx_buffer[TDM_CHANNELS*2*AUDIO_BLOCK_SAMPLES]; // 2 complete sets
+audio_block_f32_t * AudioInputTDM_32::block_incoming[TDM_CHANNELS] = {
 	nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr
 };
-bool AudioInputTDM_A::update_responsibility = false;
-DMAChannel AudioInputTDM_A::dma(false);
+bool AudioInputTDM_32::update_responsibility = false;
+DMAChannel AudioInputTDM_32::dma(false);
 static int _sampleLengthI;
 
-void AudioInputTDM_A::begin(int sampleLength)
+void AudioInputTDM_32::begin(int sampleLength, float sampleRate)
 {
 	_sampleLengthI = sampleLength;
+//	sample_rate_Hz = sampleRate;
 	dma.begin(true); // Allocate the DMA channel first
 
 	// TODO: should we set & clear the I2S_RCSR_SR bit here?
-	AudioOutputTDM_A::config_tdm();
+	AudioOutputTDM_32::config_tdm();
 #if defined(KINETISK)
 	CORE_PIN13_CONFIG = PORT_PCR_MUX(4); // pin 13, PTC5, I2S0_RXD0
 	dma.TCD->SADDR = &I2S0_RDR0;
@@ -91,39 +93,18 @@ void AudioInputTDM_A::begin(int sampleLength)
 #endif	
 }
 
-// TODO: needs optimization...
-// 8 x 32-bit samples
-static void memcpy_tdm_rx(uint32_t *dest1, uint32_t *dest2, const uint32_t *src)
-{
-	uint32_t i, in1, in2;
-	for (i=0; i < AUDIO_BLOCK_SAMPLES/2; i++) {
-		in1 = *src;
-		in2 = *(src+8);
-		src += 16;
-		*dest1++ = (in1 >> 16) | (in2 & 0xFFFF0000);
-		//*dest2++ = (in1 << 16) | (in2 & 0x0000FFFF);		
-		*dest2++ = (in1 & 0x0000FFFF)  | (in2 << 16);		// Fixed RP
-	}
-}
+// dma buffer holds two full sets of samples
+volatile int dmaBalz = 0;
+int AudioInputTDM_32::getDMAbal(void) { return dmaBalz;}
 
 
-// transfer all 16-bit samples for two channels from this 32-bit DMA block (half of 16 x AUDIO_BLOCK_SAMPLES) RP
-static void memcpy_tdm_rx_16(uint16_t *dest1, uint16_t *dest2, const uint32_t *src)
-{
-	uint32_t i, in1;
-	for (i=0; i < AUDIO_BLOCK_SAMPLES; i++) { // 2 samples per word
-		in1 = *src;
-		*dest1++ = (uint16_t)((in1 >> 16) & 0x0000FFFF);
-		*dest2++ = (uint16_t)(in1 & 0x0000FFFF);
-		src += 8; // 2 samples per word
-	}
-}
-
-void AudioInputTDM_A::isr(void)
+// read int32_t samples into float32 without conversion (done in update)
+void AudioInputTDM_32::isr(void)
 {
 	uint32_t daddr;
-	const uint32_t *src;
-	unsigned int i;
+	const int32_t *src;
+	float32_t *dest;
+	unsigned int i, j;
 
 	daddr = (uint32_t)(dma.TCD->DADDR);
 	dma.clearInterrupt();
@@ -131,50 +112,54 @@ void AudioInputTDM_A::isr(void)
 	if (daddr < (uint32_t)tdm_rx_buffer + sizeof(tdm_rx_buffer) / 2) {
 		// DMA is receiving to the first half of the buffer
 		// need to remove data from the second half
-		src = &tdm_rx_buffer[AUDIO_BLOCK_SAMPLES*8];
+		src = &tdm_rx_buffer[AUDIO_BLOCK_SAMPLES*TDM_CHANNELS];
+		dmaBalz++;
 	} else {
 		// DMA is receiving to the second half of the buffer
 		// need to remove data from the first half
 		src = &tdm_rx_buffer[0];
+		dmaBalz--;
 	}
-	if (block_incoming[0] != nullptr) {
+	if (block_incoming[0] != nullptr) // one block allocated -> all blocks OK
+	{
 		#if IMXRT_CACHE_ENABLED >=1
 		arm_dcache_delete((void*)src, sizeof(tdm_rx_buffer) / 2);
 		#endif
-	if(_sampleLengthI == 16)
-		
-		for (i=0; i < 16; i += 2) { // channel pairs RP
-			uint16_t *dest1 = (uint16_t *)block_incoming[i]->data;
-			uint16_t *dest2 = (uint16_t *)block_incoming[i+1]->data;
-			memcpy_tdm_rx_16(dest1, dest2, src);
-			src++;
-		}
-	else
-		for (i=0; i < 16; i += 2) { // channel pairs
-			uint32_t *dest1 = (uint32_t *)(block_incoming[i]->data);
-			uint32_t *dest2 = (uint32_t *)(block_incoming[i+1]->data);
-			memcpy_tdm_rx(dest1, dest2, src);
-			src++;
+
+		for(j = 0; j < AUDIO_BLOCK_SAMPLES; j++)
+		{
+			for (i = 0; i < TDM_CHANNELS; i++) 
+			{ 
+				dest = (float32_t *)&(block_incoming[i]->data[j]);
+				*dest = ((float32_t)(*src)) * I32_TO_F32_NORM_FACTOR;
+				src++;
+			}
 		}
 	}
 	if (update_responsibility) update_all();
 }
 
+void AudioInputTDM_32::scale_i32_to_f32(int32_t *p_i32, float32_t *p_f32, int len) {
+	for (int i=0; i<len; i++) 
+	{ 
+		*p_f32++ = (float32_t)((*p_i32++) * I32_TO_F32_NORM_FACTOR); 
+	}
+}
 
-void AudioInputTDM_A::update(void)
+void AudioInputTDM_32::update(void)
 {
 	unsigned int i, j;
-	audio_block_t *new_block[16];
-	audio_block_t *out_block[16];
+	audio_block_f32_t *new_block[TDM_CHANNELS];
+	audio_block_f32_t *out_block[TDM_CHANNELS];
 
-	// allocate 16 new blocks.  If any fails, allocate none
-	for (i=0; i < 16; i++) {
-		new_block[i] = allocate();
+	// allocate 8 new blocks.  If any fails, allocate none
+	for (i=0; i < TDM_CHANNELS; i++) {
+		new_block[i] = allocate_f32();
 		if (new_block[i] == nullptr) {
-			for (j=0; j < i; j++) {
+			for (j = 0; j < i; j++) {
 				release(new_block[j]);
 			}
-			memset(new_block, 0, sizeof(new_block));
+			memset(new_block, 0, sizeof(new_block)); // is this needed? 
 			break;
 		}
 	}
@@ -183,8 +168,10 @@ void AudioInputTDM_A::update(void)
 	memcpy(block_incoming, new_block, sizeof(block_incoming));
 	__enable_irq();
 	if (out_block[0] != nullptr) {
-		// if we got 1 block, all 16 are filled
-		for (i=0; i < 16; i++) {
+		// if we got 1 block, all 8 are filled
+		// copy the pointers
+		for (i = 0; i < TDM_CHANNELS; i++) {
+			//scale_i32_to_f32(out_block[i]->data, out_block[i]->data, AUDIO_BLOCK_SAMPLES); // convert in place
 			transmit(out_block[i], i);
 			release(out_block[i]);
 		}

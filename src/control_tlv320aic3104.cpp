@@ -164,6 +164,8 @@ bool AudioControlTLV320AIC3104::enableCodec(int8_t codec)
 	return true;
 }
 
+// dual rate untested
+// AGC untested
 void AudioControlTLV320AIC3104::writeR7(uint8_t codec)
 {
 	bool ok;
@@ -176,16 +178,34 @@ void AudioControlTLV320AIC3104::writeR7(uint8_t codec)
 }
 
 // I2s/TDM mode and format
-// Only 16-bit implemented
+// Only 16-bit and 32-bit tested
 // re-sync not set
+
 void AudioControlTLV320AIC3104::writeR9(uint8_t codec)		// p51
 {
-		uint8_t val = _sampleLength << 4;
+	uint8_t val;
+	switch (_sampleLength)
+	{
+		case 32:
+			val = 0x30;
+			break;
+		case 24:
+			val = 0x20;
+			break;
+		case 20:
+			val = 0x10;
+			break;
+		case 16:
+		default:
+			val = 0;
+	}
+	
+		(_verbose > 1) && fprintf(stderr, "sample length %i, val 0x%02X\n", _sampleLength, val);
 		if(_i2sMode == AICMODE_DSP)  // probably unnecessary - only master mode? 
-			val += 0x08;	// 256-clock mode
+			val |= 0x08;	// 256-clock mode
 		val += _i2sMode << 6;		
 		if (_reSync) 
-				val += 0x07; // ADC & DAC
+				val |= 0x07; // ADC & DAC
 		writeRegister(9, val, codec);
 }
 

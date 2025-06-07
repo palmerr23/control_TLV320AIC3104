@@ -1,5 +1,6 @@
 /* Audio Library for Teensy 4.X
-*** 16 bit samples correctly transferred (RP)
+ *** for 32 bit float samples and OpenAudio_Arduino library
+ *** 8 channels per frame
  * Copyright (c) 2017, Paul Stoffregen, paul@pjrc.com
  *
  * Development of this audio library was funded by PJRC.COM, LLC by sales of
@@ -29,30 +30,31 @@
 
 #if !defined(KINETISL)
 
-#include "output_tdmA.h"
+#include "output_tdm32.h"
 #include "memcpy_audio.h"
 #include "utility/imxrt_hw.h"
 // kinetis.h does not included correctly
 #define I2S0_TCR2		(*(volatile uint32_t *)0x4002F008) // SAI Transmit Configuration 2 Register
 
-audio_block_t * AudioOutputTDM_A::block_input[16] = {
-	nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+audio_block_f32_t * AudioOutputTDM_32::block_input[TDM_CHANNELS] = {
 	nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr
 };
-bool AudioOutputTDM_A::update_responsibility = false;
-DMAChannel AudioOutputTDM_A::dma(false);
+bool AudioOutputTDM_32::update_responsibility = false;
+DMAChannel AudioOutputTDM_32::dma(false);
 DMAMEM __attribute__((aligned(32)))
-static uint32_t zeros[AUDIO_BLOCK_SAMPLES/2];
+static int32_t zeros[AUDIO_BLOCK_SAMPLES]; // already scaled
 DMAMEM __attribute__((aligned(32)))
-static uint32_t tdm_tx_buffer[AUDIO_BLOCK_SAMPLES*16]; // two full sets of 16-bit samples
+static int32_t tdm_tx_buffer[TDM_CHANNELS*2*AUDIO_BLOCK_SAMPLES]; // two full sets
+static int32_t scaled_i32[TDM_CHANNELS][AUDIO_BLOCK_SAMPLES]; 		// scaled samples for dma
 static int _sampleLengthO;
 
-void AudioOutputTDM_A::begin(int sampleLength)
+void AudioOutputTDM_32::begin(int sampleLength, float sampleRate)
 {
 	_sampleLengthO = sampleLength;
+	//sample_rate_Hz = sampleRate;
 	dma.begin(true); // Allocate the DMA channel first
 
-	for (int i=0; i < 16; i++) {
+	for (int i=0; i < TDM_CHANNELS; i++) {
 		block_input[i] = nullptr;
 	}
 	memset(zeros, 0, sizeof(zeros));
@@ -107,36 +109,22 @@ void AudioOutputTDM_A::begin(int sampleLength)
 	dma.attachInterrupt(isr);
 }
 
-// TODO: needs optimization...
-static void memcpy_tdm_tx(uint32_t *dest, const uint32_t *src1, const uint32_t *src2)
-{
-	uint32_t i, in1, in2, out1, out2;
 
-	for (i=0; i < AUDIO_BLOCK_SAMPLES/4; i++) {
-
-		in1 = *src1++;
-		in2 = *src2++;
-		out1 = (in1 << 16) | (in2 & 0xFFFF);
-		out2 = (in1 & 0xFFFF0000) | (in2 >> 16);
-		*dest = out1;
-		*(dest + 8) = out2;
-
-		in1 = *src1++;
-		in2 = *src2++;
-		out1 = (in1 << 16) | (in2 & 0xFFFF);
-		out2 = (in1 & 0xFFFF0000) | (in2 >> 16);
-		*(dest + 16)= out1;
-		*(dest + 24) = out2;
-
-		dest += 32;
-	}
+//define F32_TO_I32_NORM_FACTOR (8388607)   //which is 2^23-1
+// input (-1.0 .. 1.0) result is scaled to an int_32 array
+void AudioOutputTDM_32::scale_f32_to_i32(float32_t *p_f32, int32_t *p_i32, int len) {
+    for (int i = 0; i < len; i++) // constrain(scaled, +/- NORM FACTOR)
+		 *p_i32++ = (int32_t)max(-F32_TO_I32_NORM_FACTOR, min(F32_TO_I32_NORM_FACTOR, (*p_f32++) * F32_TO_I32_NORM_FACTOR)); 
 }
 
-void AudioOutputTDM_A::isr(void)
+// dma buffer holds two full sets of samples
+volatile int dmaBal = 0;
+int AudioOutputTDM_32::getDMAbal(void) { return dmaBal;}
+
+void AudioOutputTDM_32::isr(void)
 {
-	uint32_t *dest;
-	const uint32_t *src1, *src2;
-	uint32_t i, saddr;
+	int32_t *dest;
+	uint32_t i, j, saddr;
 
 #if defined(KINETISK) || defined(__IMXRT1062__)
 	saddr = (uint32_t)(dma.TCD->SADDR);
@@ -145,50 +133,55 @@ void AudioOutputTDM_A::isr(void)
 	if (saddr < (uint32_t)tdm_tx_buffer + sizeof(tdm_tx_buffer) / 2) {
 		// DMA is transmitting the first half of the buffer
 		// so we must fill the second half
-		dest = tdm_tx_buffer + AUDIO_BLOCK_SAMPLES*8;
+		dest = &tdm_tx_buffer[AUDIO_BLOCK_SAMPLES*TDM_CHANNELS];
+		dmaBal++;
 	} else {
 		// DMA is transmitting the second half of the buffer
 		// so we must fill the first half
 		dest = tdm_tx_buffer;
+		dmaBal--;
 	}
 	if (update_responsibility) AudioStream::update_all();
 
 	#if IMXRT_CACHE_ENABLED >= 2
-	uint32_t *dc = dest;
+	int32_t *dc = dest;
 	#endif
 	
-	for (i=0; i < 16; i += 2) {
-		src1 = block_input[i] ? (uint32_t *)(block_input[i]->data) : zeros;
-		src2 = block_input[i+1] ? (uint32_t *)(block_input[i+1]->data) : zeros;
-		memcpy_tdm_tx(dest, src1, src2);
-		dest++;
-	}
+	// I2S byte twiddling doesn't make sense for 8 x 32
+	for (j = 0; j < AUDIO_BLOCK_SAMPLES; j++)
+		for (i = 0; i < TDM_CHANNELS; i++) 
+		{
+			*dest = (block_input[i] != nullptr) ? scaled_i32[i][j] : 1;
+			dest++;
+		}
 
 	#if IMXRT_CACHE_ENABLED >= 2
 	arm_dcache_flush_delete(dc, sizeof(tdm_tx_buffer) / 2 );
-	#endif
-
-	for (i=0; i < 16; i++) {
-		if (block_input[i]) {
-			release(block_input[i]);
-			block_input[i] = nullptr;
-		}
-	}
+	#endif	
+		for (i=0; i < TDM_CHANNELS; i++) 
+			if (block_input[i]) 
+			{
+				release(block_input[i]);
+				block_input[i] = nullptr;
+			}
 }
 
-
-void AudioOutputTDM_A::update(void)
+void AudioOutputTDM_32::update(void)
 {
-	audio_block_t *prev[16];
+	audio_block_f32_t *prev[TDM_CHANNELS];
 	unsigned int i;
 
 	__disable_irq();
-	for (i=0; i < 16; i++) {
+	for (i = 0; i < TDM_CHANNELS; i++) 
+	{
 		prev[i] = block_input[i];
-		block_input[i] = receiveReadOnly(i);
+		block_input[i] = receiveReadOnly_f32(i);
+		if(block_input[i] != nullptr) 		// null input block also detected in isr
+			scale_f32_to_i32(block_input[i]->data, scaled_i32[i], AUDIO_BLOCK_SAMPLES);
 	}
 	__enable_irq();
-	for (i=0; i < 16; i++) {
+	for (i = 0; i < TDM_CHANNELS; i++) 
+	{
 		if (prev[i]) 
 			release(prev[i]);
 	}
@@ -245,7 +238,7 @@ void AudioOutputTDM_A::update(void)
 #endif
 #endif
 
-void AudioOutputTDM_A::config_tdm() // argument ignored for now
+void AudioOutputTDM_32::config_tdm() // argument ignored for now
 { 
 #if defined(KINETISK)
 	SIM_SCGC6 |= SIM_SCGC6_I2S;

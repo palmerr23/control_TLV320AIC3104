@@ -8,7 +8,7 @@
  * The input is connected a FFT analyzer.
  * First the input HPF is activated, then an output DAC filter. 
  * Uses TDMA Revised library
- * Board USB Type must include AUDIO and SERIAL if USB audio is employed
+ * Board USB Type must include AUDIO 
  */
 
 #include "output_tdmA.h"
