@@ -263,10 +263,14 @@ Useful for checking that the board jumpers are set as required.
 Should be called after begin( ), where the muxes are probed and recorded.
 
 ## Examples
-- Basic operation including dynamic patching of inputs and outputs
+- Basic operation 
+- Dynamic patching of inputs and outputs
 - DAC filter capabilities
 - A matrix mixer: all inputs * all outputs 
+- USB connectivity
 - Network transport using the VBAN protocol https://vb-audio.com/Voicemeeter/vban.htm
+- OpenAudioLib F32 
+- OpenAudioLib F32_ USB incompatibility workaround
 
 ## CPU Load
 
