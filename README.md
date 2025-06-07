@@ -15,6 +15,8 @@ V1.3
 ## Compatibility
 Arduino 4.x with Teensyduino 1.59 or later and the supplied TDMA driver.
 
+Compatibile with OpenAudioLib F32 as of June 2025, except F32 USB drivers (see example).
+
 ## Single CODEC I2S operation 
 I2S mode is the default for single codecs, however TDM may be selected using the i2sMode argument.
 
