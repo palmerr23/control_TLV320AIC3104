@@ -1,7 +1,8 @@
 /*
  * Test TDM multi-codec with OpenAudioLibrary (32 bit)
  Single board 8x8 
- Output 2 different sine waves
+ Output 2 different sine waves to TDM 0,1
+ Input two channels from TDM 0,1
 
 Board USB Type must include AUDIO and SERIAL
 
@@ -33,16 +34,31 @@ AudioOutputTDM_32            tdm_out(SAMPLEWIDTH);
 
 AudioConnection_F32          patchCord1(sine1, 0, tdm_out, 0);
 AudioConnection_F32          patchCord2(sine1, 1, tdm_out, 1);
+AudioConnection_F32          patchCord12(sine1, 1, tdm_out, 2);
 AudioConnection_F32          patchCord3(tdm_in, 0, peak0, 0);
 AudioConnection_F32          patchCord4(tdm_in, 1, peak1, 0);
 
+AudioControlTLV320AIC3104 aic(CODECS, true, AICMODE_TDM, SAMPLERATE, SAMPLEWIDTH);
 void setup() 
 {
-
   AudioMemory_F32(BLOX);
   Serial.begin(115200);
   delay(100); 
   Serial.println("\n\nT4 OpenAudioLib F32 base test");
+
+  Wire.begin();
+  Wire.setClock(400000);
+  aic.setVerbose(0);
+  int boardsFound = aic.begin(RST_PIN);
+  Serial.printf("Boards found %i\n", boardsFound);
+  
+  aic.inputMode(AIC_DIFF);
+  if(!aic.enable(-1)) // After enable() DAC and ADC are muted
+    Serial.println("Failed to init codecs");
+
+  aic.volume(1, -1, -1);  // muted on startup
+  aic.inputLevel(0, -1, -1); //db
+
   sine1.frequency(500);
   sine1.amplitude(0.9);
 
