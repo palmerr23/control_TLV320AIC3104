@@ -24,38 +24,46 @@ In I2S mode, the first CODEC on the mux with the lowest I2C address will be prog
 
 In I2S mode, avoid the more complex forms of the various function calls, accepting the default arguments where they are available.
 
+The companion 8x8 Audio Board will not operate with only one CODEC enabled, as the I2C multiplexer is disabled. Two or more CODECS should be enabled on this board.
+
 ## TDM operation with multiple CODECs
-With the TDMA driver supplied with this library, two stacked boards are practical, providing 16x16 operation.
+With the TDMA drivers supplied with this library, two stacked boards are practical, providing 16x16 operation.
 
-With the default Teensy Audio TDM  driver, odd numbered channel data will be corrupted.
+_As of Teensyduino 1.59, EVEN channel samples are not transferred correctly by the Teensy Audio TDM driver. The TDMA driver supplied with this library corrects this issue._
 
-A PCA9544 I2C multiplexer selects one of the four CODECs on each board.
-
+## Multiple boards
 There are three on-board jumpers to theoretically allow up to eight muxes (boards) to be stacked with a single Teensy. 
 
 Boards may have any address within the range. Probing on start-up will assign audio channel TDM slots in increasing order of discovered mux addresses.
 
-_As of Teensyduino 1.59, EVEN channel samples are not transferred correctly by the Teensy Audio TDM driver. The TDMA driver supplied with this library corrects this issue._
+For higher bit-depths and sample rates, the OpenAudioLib (F32) library may be used. The input_tdm32 and output_tdm32 TDM drivers should be used with OpenAudioLib. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 
 While up to eight boards may theoretically be stacked, there is a practical limit with the standard Teensy Audio Library TDM driver which provides a 16 x 16-bit duplex TDM interface - that is two 8x8 boards. (Note 
 Alternate Audio libraries, such as that managed by Jonathan Oakley https://github.com/h4yn0nnym0u5e/Audio/tree/feature/multi-TDM, provide the ability to support more channels.
 
-As more than two stacked boards has not been tested, it is possible that the DI and DO signals may be corrupted because of long signal paths. On each board the 0 ohm jumpers at R5 and R7 may be replaced by 47 ohm resistors.
+There is a discussion on enabling more than 16x16 channels in the forum: https://forum.pjrc.com/index.php?threads/updated-8x8-and-16x16-audio.75569/
 
 At a hardware level, there are also jumpers on the PCB to allow alternate DI/DO pins to be used. This feature is untested and the Teensy may not be able to drive more than two boards simultaneously, due to reflections and distortion of the high frequency signals by multiple long PCB tracks. 
 
 Please read the hardware notes in this repo before attempting to stack more than two boards or use alternate DI/DO pins.
 
-
 ## Available Hardware
 
-The hardware is described at https://github.com/palmerr23/Teensy8x8AudioBoard
+The companion hardware is described at https://github.com/palmerr23/Teensy8x8AudioBoard
 
 # Function Reference
 
-The TDMA driver operates in the same way as the standard Teensy Audio TDM driver. A 'fixed' TDM2 driver is not provided.
+The TDMA driver operates in the same way as the standard Teensy Audio TDM driver. A 'fixed' TDM2 driver is available in the multi-TDM library (see ablove).
 
 ### Constructor
+
+For 8x8 or 16x16 TDM operation the simplest form is: 
+
+```
+AudioControlTLV320AIC3104 aic(n, true, AICMODE_TDM); // (n > 1)
+```
+
+The full form should be used when using TDM mode or different sampleRates/sampleLengths with the OpenAudio Library:
 
 ```
 AudioControlTLV320AIC3104 aic(uint8_t codecs = 1, bool useMCLK = true, uint8_t i2sMode = AICMODE_I2S,  long sampleRate = 44100, int sampleLength = 16);
@@ -67,17 +75,11 @@ The simplest form for a single codec defaults to I2S mode with standard teensy a
 AudioControlTLV320AIC3104 aic( );
 ```
 
-For TDM operation the simplest form is: 
-
-```
-AudioControlTLV320AIC3104 aic(n); // (n > 1)
-```
-
 ### AudioMemory( )
 
 Two AudioMemory blocks are required for each provisioned input or output for stable operation. This is independent of the number of channels with active patchcords.
 
-Thus, a single board (4 CODECS) will require 20 audio blocks to be allocated.
+Thus, a single board (4 CODECS) will require 16 audio blocks to be allocated for the 8 input and output buffers.
 
 ### Wire
 
