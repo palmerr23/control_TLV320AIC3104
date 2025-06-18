@@ -72,7 +72,7 @@ uint8_t AudioControlTLV320AIC3104::gainToStep(float gain)
 {
 	gain = constrain(gain, 0, AIC_MAX_PGA_GAIN); // p54
 	uint8_t step = 0.5 + (gain * 0x77) / AIC_MAX_PGA_GAIN; // 0.5 db steps from 0 (0x0) to 59.5dB (0x77)
-	//if(_verbose) fprintf(stderr, "Gain %2.1f dB set to step %i\n",  gain, step);
+	if(_verbose) fprintf(stderr, "Gain %2.1f dB set to step %i 0x%x\n",  gain, step, step);
 	return step;
 }
 
@@ -94,13 +94,13 @@ uint8_t AudioControlTLV320AIC3104::gainInteger(uint8_t gainStep, int8_t channel,
 	for(int i = start; i < end; i++)
 	{
 		
-		if(channel <= 0)
+		if(channel < 0 || !(channel & 1))
 			if(!writeRegister(15, gainStep & 0x7f, i))
 				return false;
 		if(channel < 0 || channel & 1)
 			writeRegister(16, gainStep & 0x7f, i);
 	}
-	//if(_verbose) fprintf(stderr, "Wrote Gain step %i channels %i codecs %i..%i\n", gainStep, channel, start, end);
+	if(_verbose) fprintf(stderr, "Wrote Gain step %i to channels %i of codecs %i < %i\n", gainStep, channel, start, end);
 	return gainStep;
 }
 
@@ -143,7 +143,7 @@ bool AudioControlTLV320AIC3104::volume(float vol, int8_t channel, int8_t codec)
 	for(int i = start; i < end; i++)
 	{
 		
-		if(channel <= 0) // LEFT
+		if(channel < 0 || !(channel & 1)) // LEFT
 		{
 			if(!writeRegister(47, volStep  | 0x80, i)) // HP
 				return false;
@@ -212,7 +212,7 @@ bool AudioControlTLV320AIC3104::setHPF(uint8_t option, int8_t channel, int8_t co
 	}
 	
 	uint8_t value = 0;
-	if(channel <= 0) 								// left, right or both channels
+	if(channel < 0 || !(channel & 1))		// left, right or both channels
 		value = _hpfDefault << 6 ;		// L
 	if(channel < 0 || channel & 1)
 		value += _hpfDefault << 4;		// R

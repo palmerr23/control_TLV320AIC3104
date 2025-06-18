@@ -196,7 +196,7 @@ public:
  * inputLevel: -59.5 .. 0
  */
 	uint8_t gain(float gainVal, int8_t channel = -1, int8_t codec = -1); 	// 0..60dB gain range
-	bool inputLevel(float gainVal, int8_t channel, int8_t); // 0 to -59.5dB
+	bool inputLevel(float gainVal, int8_t channel, int8_t codec); // 0 to -59.5dB
 	bool inputLevel(float gainVal){ return inputLevel(gainVal, -1, -1); } // see AudioControl.h
 
 	bool inputSelect(int level, int8_t channel, int8_t); 		// n=0: Line level, PGA gain = 0dB; n=1: Mic level, PGA gain = 59.5dB See inputLevel();
