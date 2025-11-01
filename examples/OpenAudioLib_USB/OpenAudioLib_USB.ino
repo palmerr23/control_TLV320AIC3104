@@ -67,10 +67,10 @@ void setup()
   aic.setVerbose(2);
   aic.begin(RST_PIN);
   aic.inputMode(AIC_DIFF);
-  if(!aic.enable(-1)) 
+  if(!aic.enable(CH_BOTH)) 
     Serial.println("Failed to init codecs");
-  aic.volume(1, -1, -1);  // muted on startup
-  aic.inputLevel(0, -1, -1); //db
+  aic.volume(1, CH_BOTH, AIC_ALL_CODECS);  // muted on startup
+  aic.inputLevel(0, CH_BOTH, AIC_ALL_CODECS); //db
 
   delay(100); // allow  a few buffers to run through  
  

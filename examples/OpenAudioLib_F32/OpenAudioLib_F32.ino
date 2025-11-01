@@ -53,11 +53,11 @@ void setup()
   Serial.printf("Boards found %i\n", boardsFound);
   
   aic.inputMode(AIC_DIFF);
-  if(!aic.enable(-1)) // After enable() DAC and ADC are muted
+  if(!aic.enable(CH_BOTH)) // After enable() DAC and ADC are muted
     Serial.println("Failed to init codecs");
 
-  aic.volume(1, -1, -1);  // muted on startup
-  aic.inputLevel(0, -1, -1); //db
+  aic.volume(1, CH_BOTH, AIC_ALL_CODECS);  // muted on startup
+  aic.inputLevel(0, CH_BOTH, AIC_ALL_CODECS); //db
 
   sine1.frequency(500);
   sine1.amplitude(0.9);

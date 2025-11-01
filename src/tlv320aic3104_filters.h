@@ -63,9 +63,8 @@ void AudioControlTLV320AIC3104::adcHPF(int freq, int8_t channel, int8_t codec)
 		cst = codec;
 		cend = cst + 1;
 	}
-	/*****  left and right were swapped vvv ***/
 
-	uint8_t val107 = 0x30 | ((channel & 1) ? 0x80 : 0) | ((channel & 2) ? 0x40 : 0);	// top two bits + reserved (p77)
+	uint8_t val107 = 0x30 | ((channel < 0 || !channel) ? 0x80 : 0) | ((channel) ? 0x40 : 0);	// top two bits + reserved (p77)
 	(_verbose > 1) && fprintf(stderr, "%s ADC HPF, freq %i for codecs %i to %i, channel %i, R107 0x%2x\n", (freq > 1) ? "ENABLE" : "DISABLE", freq, cst, cend, channel, val107);
 	// execute in CODEC order to avoid mux switching delay
 	for(int cod = cst; cod < cend; cod++)
@@ -78,13 +77,13 @@ void AudioControlTLV320AIC3104::adcHPF(int freq, int8_t channel, int8_t codec)
 			setRegPage(1, cod); // ADC HPF coefficient registers are in Reg Page 1
 			for(int i = 0; i < 6; i++)
 			{
-				if(channel & 1)
+				if(channel < 0 || !channel)
 				{
 					writeRegister(65+i, bb.coeff[i], cod); 
 					//Serial.print("$");
 				}
 					
-				if(channel & 2)
+				if(channel)
 				{
 					writeRegister(71+i, bb.coeff[i], cod); 
 					//Serial.print("C");

@@ -65,25 +65,25 @@ void setup()
     Serial.println("Failed to initialise codec");
 
   // After enable() DAC and ADC are muted. Codecs to change need to be explicitly specified.
-  aic.volume(1, -1, 0);  // muted on startup
-  aic.inputLevel(0, -1, 0); // level in dB: 0 = line level
+  aic.volume(1, CH_BOTH, 0);  // muted on startup
+  aic.inputLevel(0, CH_BOTH, 0); // level in dB: 0 = line level
   noise.amplitude(0.8);
 
   delay(8000); // wait for filters and FFTs to stabilise
   printFFTs("No filters");
 
   // ADC input HP filter - codec 0, both channels
-  aic.adcHPF(200, -1, 0); 
+  aic.adcHPF(200, CH_BOTH, 0); 
   delay(8000);
   printFFTs("ADC: 200Hz Highpass filter");
 
   // DAC output HP filter
-  aic.adcHPF(0, -1, 0); // turn the ADC filter off
-  aic.setHighpass(0, 400, 1, -1, 0);
+  aic.adcHPF(0, CH_BOTH, 0); // turn the ADC filter off
+  aic.setHighpass(0, 400, 1, CH_BOTH, 0);
   delay(8000);
   printFFTs("ADC HPF off\nDAC: 1-stage 400Hz Highpass filter");
 
-  aic.setNotch(1, 2000, 2, -1, 0);
+  aic.setNotch(1, 2000, 2, CH_BOTH, 0);
   delay(8000);
   printFFTs("DAC: add 2kHz notch filter");
 

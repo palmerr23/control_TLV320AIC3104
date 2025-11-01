@@ -111,16 +111,18 @@ void AudioOutputTDM_32::begin(int sampleLength, float sampleRate)
 
 
 //define F32_TO_I32_NORM_FACTOR (8388607)   //which is 2^23-1
-// input (-1.0 .. 1.0) result is scaled to an int_32 array
+// input (-1.0 .. 1.0) result is scaled to an int_32 array. 
+// Out of bounds data is constrained
 void AudioOutputTDM_32::scale_f32_to_i32(float32_t *p_f32, int32_t *p_i32, int len) {
     for (int i = 0; i < len; i++) // constrain(scaled, +/- NORM FACTOR)
 		 *p_i32++ = (int32_t)max(-F32_TO_I32_NORM_FACTOR, min(F32_TO_I32_NORM_FACTOR, (*p_f32++) * F32_TO_I32_NORM_FACTOR)); 
 }
 
-// dma buffer holds two full sets of samples
+// should be -1, 0 or +1 if DMA is working OK on input and output
 volatile int dmaBal = 0;
 int AudioOutputTDM_32::getDMAbal(void) { return dmaBal;}
 
+// dma buffer holds two full sets of samples
 void AudioOutputTDM_32::isr(void)
 {
 	int32_t *dest;
@@ -147,11 +149,11 @@ void AudioOutputTDM_32::isr(void)
 	int32_t *dc = dest;
 	#endif
 	
-	// I2S byte twiddling doesn't make sense for 8 x 32
+	// I2S byte twiddling doesn't make sense for 8 x 32bit samples
 	for (j = 0; j < AUDIO_BLOCK_SAMPLES; j++)
 		for (i = 0; i < TDM_CHANNELS; i++) 
 		{
-			*dest = (block_input[i] != nullptr) ? scaled_i32[i][j] : 1;
+			*dest = (block_input[i] != nullptr) ? scaled_i32[i][j] : 0;
 			dest++;
 		}
 
@@ -176,7 +178,7 @@ void AudioOutputTDM_32::update(void)
 	{
 		prev[i] = block_input[i];
 		block_input[i] = receiveReadOnly_f32(i);
-		if(block_input[i] != nullptr) 		// null input block also detected in isr
+		if(block_input[i] != nullptr) 		// null block also detected in isr
 			scale_f32_to_i32(block_input[i]->data, scaled_i32[i], AUDIO_BLOCK_SAMPLES);
 	}
 	__enable_irq();

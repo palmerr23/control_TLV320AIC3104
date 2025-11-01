@@ -29,7 +29,17 @@
  * R. Palmer 2025
  */
 
-// VERSION 1.3
+// VERSION 1.4 Nov 2025
+// Added AGC code and example
+// Changed L/R channel selection logic for most functions
+// Added channelNumbers enum
+// Updated examples to use AIC_ALL_CODECS and CH_BOTH
+ 
+// Version 1.3 June 2025
+// Second production release
+
+// Version 1.2 April 2025
+// First production release
 
 #ifndef _TLV320AIC3104_H
 #define _TLV320AIC3104_H
@@ -114,8 +124,16 @@
 #define TCA9546_BASE_ADDRESS 					 0x70
 
 enum dacPwr{DAC_DEF = 0, DAC_50 = 0x40, DAC_100 = 0xc0};
+enum codec_channels {CH_LEFT = 0, CH_RIGHT = 1, CH_BOTH = -1};
+enum agcTarget {AGCT5_5, AGCT8, AGCT10, AGCT12, AGCT14, AGCT17, AGCT20, AGCT24};
+enum agcAttack {AGCA8, AGCA11, AGCA16, AGCA20};
+enum agcDecay {AGCD100, AGCD200, AGCD400, AGCD500};
+// AGC max gain is (2 * dB)
+// AGC Noise Threshold is (-dB - 28)/2. 0 is OFF
+enum agcHysteresis {AGCH1, AGCH2, AGCH3, AGCH_OFF};
 // Input modes
 enum inputModes {AIC_SINGLE, AIC_DIFF};
+enum channelNumbers {LEFT = 0, RIGHT = 1, BOTH = 3};
 struct aic_pll {
 	unsigned long clk, p, r, j, d, q;
 	float 	k;
@@ -188,7 +206,9 @@ public:
  * When inputMode, inputlevel or setHPF commands are issued before enable() they set the defaults.
  * After enable() they changes whichever channels/codecs are selected.
  */
-	bool inputMode(inputModes mode, int8_t codec = -1); // 0 = single ended; 1 = differential	
+	bool inputMode(inputModes mode, int8_t codec = -1); // both channels. 0 = single ended; 1 = differential	
+	// channel = 0 -> left; channel == 1 -> right; channel > 1 -> both
+	bool inputMode(inputModes mode, int8_t channel, int8_t codec); // 0 = single ended; 1 = differential	
 	
 /* PGA gain (input level) can be controlled directly, or by using inputSelect for LINE/MIC 
  * gainVal is in dB 
@@ -201,10 +221,12 @@ public:
 
 	bool inputSelect(int level, int8_t channel, int8_t); 		// n=0: Line level, PGA gain = 0dB; n=1: Mic level, PGA gain = 59.5dB See inputLevel();
 	bool inputSelect(int level) { return inputSelect(level, -1, -1); } 		// see AudioControl.h
-	
+		
 	// HPF will remove the DC offset from signal (P29 and P52)
 	bool setHPF(uint8_t option, int8_t channel = -1, int8_t codec = -1); // DEPRECATED - filter corner frequencies too high. When issued before the codecs are enabled, all channels and codecs are set. Default is off
 	void adcHPF(int freq, int8_t channel = -1, int8_t codec = -1); // disable: freq < 1 
+	bool AGC(int8_t targetLevel, int8_t attack, int8_t decay, float maxGain,  uint8_t hysteresis,  float noiseThresh, bool clipStep, int8_t channel, int8_t codec);
+	bool AGCenable(bool enable, int8_t channel, int8_t codec);
 	void setVerbose(int verbosity); // 0 = off Diagnostics. 1 and 2 are increasingly verbose. Beware, this will block if USB Serial isn't connected.
 
 	// only used for debugging

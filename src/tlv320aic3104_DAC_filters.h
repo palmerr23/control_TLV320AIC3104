@@ -222,13 +222,13 @@ void AudioControlTLV320AIC3104::setDACfilter(int stage, const int *coef, int8_t 
 			//Serial.printf("Stage %i\n", stage);
 			for(int i = 0; i < 3; i++) // N registers
 			{
-				if(channel & 1) // left N
+				if(channel < 0 || !channel) // left N
 				{	// high and low bytes - MSB first
 				 // Serial.printf("LN %i(R%i)\n", i, 1+2*i + stage * 6); // R1:1..6 & R1:7..12
 					writeRegister(1+2*i + stage * 6, (coefx[i] >> 8) & 0xff, cod); 
 					writeRegister(2+2*i + stage * 6, coefx[i] & 0xff, cod);
 				}
-				if(channel & 2) //right N
+				if(channel) //right N
 				{
 					//Serial.printf("RN %i(R%i)\n",i,  27+2*i + stage * 6); // R1:27..32 & R1:33..38
 					writeRegister(27+2*i + stage * 6, (coefx[i]>> 8) & 0xff, cod); 
@@ -237,13 +237,13 @@ void AudioControlTLV320AIC3104::setDACfilter(int stage, const int *coef, int8_t 
 			}
 			for(int i = 0; i < 2; i++) // D registers
 			{
-				if(channel & 1) // left D
+				if(channel < 0 || !channel) // left D
 				{	// high and low bytes - MSB first
 				 // Serial.printf("LD %i(%i)\n", i, 13+2*i + stage * 4); // R1:13..16 & R1:17..20
 					writeRegister(13+2*i + stage * 4, (coefx[i+3] >> 8) & 0xff, cod); 
 					writeRegister(14+2*i + stage * 4, coefx[i+3] & 0xff, cod);
 				}
-				if(channel & 2) // right d
+				if(channel) // right d
 				{
 					// Serial.printf("LD %i(%i)\n", i,39+2*i + stage * 4); // R1:39..42 & R1:43..46
 					writeRegister(39+2*i + stage * 4, (coefx[i+3] >> 8) & 0xff, cod); 
@@ -275,7 +275,7 @@ void AudioControlTLV320AIC3104::setDACfilter(int stage, const int *coef, int8_t 
 char regs[FILTERREGS][10] ={"S0:N0    ", "S0:N1    ", "S0:N2    ", "S0:D1    ", "S0:D2    ", "S1:N0(N3)", "S1:N1(N4)", "S1:N2(N5)", "S1:D1(D3)", "S1:D2(D4)"};
 uint8_t regOrder[FILTERREGS] = {1, 3, 5, 13, 15,   7, 9, 11, 17,19}; // (channel 0: N0 N1, N2, D1, D2 channel 1: ...) offset by 26 for Right channel filters
 
-void AudioControlTLV320AIC3104::printDACfilters(int8_t channels, int8_t codec)
+void AudioControlTLV320AIC3104::printDACfilters(int8_t channel, int8_t codec)
 {
 	int cst, cend, i;
 	if(codec < 0)
@@ -291,27 +291,27 @@ void AudioControlTLV320AIC3104::printDACfilters(int8_t channels, int8_t codec)
 	for(int cod = cst; cod < cend; cod++)
 	{
 		setRegPage(1, cod);
-		if (channels & 1)
+		if(channel < 0 || !channel)
 		{
-			Serial.println("Left");
+			//Serial.println("Left");
 			for(i = 0; i < FILTERREGS; i++)
 			{
 				uint16_t val = readRegister(regOrder[i], cod) << 8 | readRegister(regOrder[i]+1, cod);
-				Serial.printf("%s [R%2i]: 0x%04X\n", regs[i], regOrder[i], val);
+				//Serial.printf("%s [R%2i]: 0x%04X\n", regs[i], regOrder[i], val);
 			}
 		}
-		if (channels & 2)
+		if (channel)
 		{
-			Serial.println("Right");
+			//Serial.println("Right");
 			for(i = 0; i < FILTERREGS; i++)
 			{
 				uint16_t val = readRegister(regOrder[i]+ 26, cod) << 8 | readRegister(regOrder[i]+27, cod);
-				Serial.printf("%s [R%2i]: 0x%04X\n", regs[i], regOrder[i]+26, val);
+				//Serial.printf("%s [R%2i]: 0x%04X\n", regs[i], regOrder[i]+26, val);
 			}
 		}		
 		setRegPage(0, cod);
 		uint8_t val = readRegister(12, cod);
-		Serial.printf("R12: 0x%02X\n", val);
+		//Serial.printf("R12: 0x%02X\n", val);
 	}	
 }
 /*

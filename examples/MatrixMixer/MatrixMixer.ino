@@ -81,8 +81,8 @@ void setup()
     Serial.println("Failed to initialise codec");
 
   // After enable() DAC and ADC are muted. Codecs to change need to be explicitly specified.
-  aic.volume(1, -1, testCodec);  // muted on startup
-  aic.inputLevel(0, -1, testCodec); // level in dB: 0 = line level, ~-50 = mic level
+  aic.volume(1, CH_BOTH, testCodec);  // muted on startup
+  aic.inputLevel(0, CH_BOTH, testCodec); // level in dB: 0 = line level, ~-50 = mic level
 
   sine[0].frequency(500);
   sine[0].amplitude(0.4);

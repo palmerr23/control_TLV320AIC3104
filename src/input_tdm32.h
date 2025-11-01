@@ -1,6 +1,7 @@
 /* Audio Library for Teensy 3.X
  *** for 32 bit float samples and OpenAudio_Arduino library
  *** 8 channels per frame
+ *** Teensy 4 only
  * Copyright (c) 2017, Paul Stoffregen, paul@pjrc.com
  *
  * Development of this audio library was funded by PJRC.COM, LLC by sales of

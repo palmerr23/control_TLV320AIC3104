@@ -6,15 +6,20 @@ Routing and volume control
 /*************** INPUTS **************/
 // Input mode - single ended or differential
 // In differential mode '-' inputs should be grounded for unbalanced signals to reduce noise.
-// both channels must have the same mode (R19, p 56)
+// both channels must have the same mode IF input goes to both ADCs (R19, p 56)
+// 0 = single ended, 1 = differential
 bool AudioControlTLV320AIC3104::inputMode(inputModes mode, int8_t codec)
+{
+	return inputMode(mode, 3, codec);  //  both channels
+}
+// channel = 0 -> left; channel == 1 -> right; channel > 1 -> both
+bool AudioControlTLV320AIC3104::inputMode(inputModes mode, int8_t channel, int8_t codec)
 {
 	_inputMode = mode; 
 	if (!_isRunning) // if issued before enable() this just sets the default input mode 
 		return false;
-	
 	uint8_t start, end, xmode;
-	xmode = (mode << 7) + 0x04;
+	xmode = (mode << 7) + 0x04; // powered up ADC
 	if(codec < 0)
 	{
 		start = 0;
@@ -28,8 +33,10 @@ bool AudioControlTLV320AIC3104::inputMode(inputModes mode, int8_t codec)
 
 	for(int i = start; i < end; i++)
 	{
-		writeRegister(19, xmode, i);
-		writeRegister(22, xmode, i);
+		if(channel < 0 || !channel)
+			writeRegister(19, xmode, i);
+		if(channel)
+			writeRegister(22, xmode, i);
 	}
 	return true;
 }
@@ -67,6 +74,8 @@ uint8_t AudioControlTLV320AIC3104::gain(float gain, int8_t channel, int8_t codec
 	 return _gainStep;
 }
 
+
+
 // calculate the PGA step from dB  
 uint8_t AudioControlTLV320AIC3104::gainToStep(float gain)
 {
@@ -94,10 +103,10 @@ uint8_t AudioControlTLV320AIC3104::gainInteger(uint8_t gainStep, int8_t channel,
 	for(int i = start; i < end; i++)
 	{
 		
-		if(channel < 0 || !(channel & 1))
+		if(channel < 0 || !channel)
 			if(!writeRegister(15, gainStep & 0x7f, i))
 				return false;
-		if(channel < 0 || channel & 1)
+		if(channel)
 			writeRegister(16, gainStep & 0x7f, i);
 	}
 	if(_verbose) fprintf(stderr, "Wrote Gain step %i to channels %i of codecs %i < %i\n", gainStep, channel, start, end);
@@ -143,14 +152,14 @@ bool AudioControlTLV320AIC3104::volume(float vol, int8_t channel, int8_t codec)
 	for(int i = start; i < end; i++)
 	{
 		
-		if(channel < 0 || !(channel & 1)) // LEFT
+		if(channel < 0 || !channel) // LEFT
 		{
 			if(!writeRegister(47, volStep  | 0x80, i)) // HP
 				return false;
 			writeRegister(82, volStep | 0x80, i); // L_OP
 			writeRegister(43, DACmute, i); // DAC (mute vol ~0)
 		}
-		if(channel < 0 || channel & 1) //RIGHT
+		if(channel) //RIGHT
 		{
 			writeRegister(64, volStep | 0x80, i); // HP
 			writeRegister(92, volStep | 0x80, i); // R_OP
@@ -212,9 +221,9 @@ bool AudioControlTLV320AIC3104::setHPF(uint8_t option, int8_t channel, int8_t co
 	}
 	
 	uint8_t value = 0;
-	if(channel < 0 || !(channel & 1))		// left, right or both channels
+	if(channel < 0 || !channel)		// left, right or both channels
 		value = _hpfDefault << 6 ;		// L
-	if(channel < 0 || channel & 1)
+	if(channel)
 		value += _hpfDefault << 4;		// R
 	
 	for(int i = start; i < end; i++)

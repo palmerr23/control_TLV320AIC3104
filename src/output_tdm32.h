@@ -59,9 +59,5 @@ protected:
 	//static int audio_block_samples;
 private:
 	audio_block_f32_t *inputQueueArray[8];
-
-
 };
-
-
 #endif

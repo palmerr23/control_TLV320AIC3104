@@ -36,10 +36,10 @@
 
 class AudioOutputTDM_A : public AudioStream
 {
-public:
-	AudioOutputTDM_A(int sampleLength = 32) : AudioStream(16, inputQueueArray) { begin(sampleLength); }
+public: // 16 x 16 bits
+	AudioOutputTDM_A(int sampleLength = 16) : AudioStream(16, inputQueueArray) { begin(sampleLength); }
 	virtual void update(void);
-	void begin(int sampleLength = 32);
+	void begin(int sampleLength = 16);
 	friend class AudioInputTDM_A;
 	uint32_t getTCR2(void) {return TCR2_val;}
 	uint32_t TCR2_val = 0x0505;
@@ -52,6 +52,4 @@ protected:
 private:
 	audio_block_t *inputQueueArray[16];
 };
-
-
 #endif

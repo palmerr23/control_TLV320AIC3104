@@ -99,13 +99,17 @@ Called without arguments, enable( ) configures all attached CODEC control regist
 
 enable(codec) may be useful when debugging hardware.
 
-### inputMode(inputModes mode, int8_t codec)
+## ADC
+### inputMode(inputModes mode, int8_t channel, int8_t codec)
+### inputMode(inputModes mode, int8_t codec) {both channels set}
 
 Set single-ended (AIC_SINGLE) or differential (AIC_DIFF) input mode.
 
 When called before enable( ), inputMode sets the default input mode and the second argument is ignored.
 
 When called after enable( ), all CODECS (codec = -1) or a single CODEC may be affected.
+
+Channel = 0 -> left; channel == 1 -> right; channel > 1 -> both
 
 In differential mode '-' inputs should be grounded for unbalanced signals to reduce noise.
 
@@ -139,6 +143,11 @@ Values outside these ranges are constrained.
 
 When called without channel and codec arguments, all codecs and channels are affected. 
 
+### pad(float pad, int8_t channel, int8_t codec)
+Enable the ADC input pad.
+
+Value from 0 to -12 in 1.5 dB steps
+
 ### adcHPF(int frequency, int8_t channel = -1, int8_t codec = -1)
 HPF frequencies may be set between 1Hz and 5kHz.
 
@@ -161,7 +170,15 @@ Input channel DC removal filter. These standard digital filter settings are not 
 2 = 0.0125 Fs (551 Hz)
 3 = 0.025  Fs (1102 Hz)
 ```
+###  AGC(int8_t targetLevel, int8_t attack, int8_t decay, float maxGain, uint8_t hysteresis, float noiseThresh, bool clipStep, int8_t channel, int8_t codec)
+Set and enable AGC.
 
+See TLV320AIC3104 datasheet: registers 26-29 for settings.
+
+### AGCenable(bool enable, int8_t channel, int8_t codec);
+Enable or disable AGC without changing other AGC settings.
+	
+## DAC
 ### volume(float value, int8_t channel, int8_t codec)
 Sets the volume of an output channel. The range is 0.0 .. 1.0 
  
@@ -273,6 +290,7 @@ Should be called after begin( ), where the muxes are probed and recorded.
 - Network transport using the VBAN protocol https://vb-audio.com/Voicemeeter/vban.htm
 - OpenAudioLib F32 
 - OpenAudioLib F32_ USB incompatibility workaround
+- AGC (Compressor)
 
 ## CPU Load
 

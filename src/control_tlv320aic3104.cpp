@@ -168,19 +168,17 @@ bool AudioControlTLV320AIC3104::enableCodec(int8_t codec)
 // AGC untested
 void AudioControlTLV320AIC3104::writeR7(uint8_t codec)
 {
-	bool ok;
 		// should set R7 to 44.1 or 48kHz base (p50)
 		uint8_t val;
 		val = (_baseRate == 48000) ? 0x00 : 0x80;	// Bit 7: AGC time constants
 		val += (_dualRate) ? 0x60 : 0; 						// Bits 5-6 (dual rate)
 		val +=  0x0A;						 									// Bits 1-4 (DAC data path): data to respective DACs 
-		ok = writeRegister(7, val, codec);
+		writeRegister(7, val, codec);
 }
 
 // I2s/TDM mode and format
 // Only 16-bit and 32-bit tested
 // re-sync not set
-
 void AudioControlTLV320AIC3104::writeR9(uint8_t codec)		// p51
 {
 	uint8_t val;
@@ -267,5 +265,6 @@ bool AudioControlTLV320AIC3104::stopAudio()
 #include "tlv320aic3104_pll.h" 
 #include "tlv320aic3104_filters.h" 
 #include "tlv320aic3104_DAC_filters.h"
+#include "AGC.h"
 
 
