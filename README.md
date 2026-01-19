@@ -1,5 +1,7 @@
 # Teensy Audio TLV320AIC3104 8x8 CODEC Board Control library
 
+Discussions have been enabled on the associated hardware repository for questions or suggestions about this hardware and software https://github.com/palmerr23/Teensy8x8AudioBoard/discussions
+
 A Teensy Audio Control library for the Texas Instruments TLV320AIC3104 stereo channel CODEC. This CODEC is TDM-compatible as can be programmed to offset its read/write slots to anywhere in a 256 slot TDM cycle and put the DO line in a Hi-Z state when not transmitting.
 
 The library was created specifically for the associated four-CODEC Teensy Audio board (https://github.com/palmerr23/Teensy8x8AudioBoard). As the AIC320 only supports a single I2C address, there is some code to ensure the correct CODEC is being programmed via a multiplexed I2C bus.
