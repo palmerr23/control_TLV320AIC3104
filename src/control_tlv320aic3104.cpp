@@ -19,8 +19,10 @@ AudioControlTLV320AIC3104::AudioControlTLV320AIC3104(uint8_t codecs, bool useMCL
 	_sampleLength = sampleLength;
 	_usingMCLK = useMCLK;
 	_i2sMode = i2sMode;
-	if(codecs > 1)
-		_i2sMode = AICMODE_TDM; // I2S only for one codec
+	if(codecs > AIC_MAX_I2S_CODECS)
+		_i2sMode = AICMODE_TDM; // I2S OK up to 5x codecs, otherwise force TDM
+	if (AICMODE_I2S == _i2sMode)
+		_sampleLength = 32; // Teensy uses 32-bit slots for I2S		
 	_sampleRate = sampleRate;
 	_dualRate = (_sampleRate > 48000);
 	_baseRate = (_sampleRate % 8000 == 0) ? 48000 : 44100;
@@ -43,13 +45,13 @@ bool AudioControlTLV320AIC3104::enable(int8_t codec)
 		_resetDone = true;
 	}
 	(_verbose > 1) && fprintf(stderr, "Enable CODEC %i\n", codec);
-	if(codec > 1) // force TDM mode
+	if(codec > AIC_MAX_I2S_CODECS) // force TDM mode
 		if(_i2sMode != AICMODE_TDM)
 		{
-			_verbose && fprintf(stderr, "Audio mode must be TDM for multiple CODECs %i\n ", codec);
+			_verbose && fprintf(stderr, "Audio mode must be TDM for more than %d CODECs %i\n ", AIC_MAX_I2S_CODECS, codec);
 			_i2sMode = AICMODE_TDM;
 		}
-	if(codec < 0 ) // all codecs (allow for || codec > 128
+	if(codec < 0) // all codecs (allow for || codec > 128
 	{
 		for(int i = 0; i < _codecs; i++)
 		{
@@ -198,12 +200,12 @@ void AudioControlTLV320AIC3104::writeR9(uint8_t codec)		// p51
 			val = 0;
 	}
 	
-		(_verbose > 1) && fprintf(stderr, "sample length %i, val 0x%02X\n", _sampleLength, val);
 		if(_i2sMode == AICMODE_DSP)  // probably unnecessary - only master mode? 
 			val |= 0x08;	// 256-clock mode
 		val += _i2sMode << 6;		
 		if (_reSync) 
 				val |= 0x07; // ADC & DAC
+		(_verbose > 1) && fprintf(stderr, "sample length %i, val 0x%02X\n", _sampleLength, val);
 		writeRegister(9, val, codec);
 }
 

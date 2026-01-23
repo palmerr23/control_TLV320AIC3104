@@ -71,10 +71,10 @@
 #define AICMODE_RJ			0x2
 #define AICMODE_LJ			0x3
 #define AICMODE_TDM			AICMODE_DSP
-#define AIC_TDM_OFFSET	1			// Teensy Audio: invert BCLK, offset slots by 1 BCLK
-#define AIC_FIRST_SLOT	0 		// shift first CODEC for testing later slots
-#define AIC_TDM_CLOCKS	256		// 16 x 16-bit slots
-#define AIC_TM_SLOT_SHIFT 5 	// (2 x 16 = 32 bits for 2 channels)
+#define AIC_TDM_OFFSET		1	// Teensy Audio: invert BCLK, offset slots by 1 BCLK
+#define AIC_FIRST_SLOT		0 	// shift first CODEC for testing later slots
+#define AIC_TDM_CLOCKS	  256	// 16 x 16-bit slots
+#define AIC_TM_SLOT_SHIFT   5 	// (2 x 16 = 32 bits for 2 channels)
 
 #define AICWORD_16			0x0
 #define AICWORD_20			0x1
@@ -89,35 +89,46 @@
 
 // Multi CODEC/board mode
 // 16 x 16 bit slots in Teensy TDM
-#define AIC_MAX_BOARDS 				2 		// Also number of board enable pins 
-#define AIC_CODECS_PER_BOARD	4			// 2 bits (also mux channels)
-#define AIC_MUX_PINS 					2 		// mux SCL: n = SQRT(AIC_CODECS_PER_BOARD)
-#define AIC_MUX_MASK					0x03	
-#define AIC_MAX_CODECS 				(AIC_CODECS_PER_BOARD * AIC_MAX_BOARDS)
-#define AIC_MAX_CHANNELS 			(AIC_MAX_CODECS * 2)
+#define AIC_MAX_BOARDS 			2 		// Also number of board enable pins 
+#define AIC_CODECS_PER_BOARD	4		// 2 bits (also mux channels)
+#define AIC_MUX_PINS 			2 		// mux SCL: n = SQRT(AIC_CODECS_PER_BOARD)
+#define AIC_MUX_MASK			0x03	
+#define AIC_MAX_CODECS 			(AIC_CODECS_PER_BOARD * AIC_MAX_BOARDS)
+#define AIC_MAX_CHANNELS 		(AIC_MAX_CODECS * 2)
 
-#define AIC_CODEC_CLOCK_SOURCE 0 	// pll.dIV default (R101, p70)
-#define AIC_PLL_SOURCE			0			// MCLK default(R102, p70)
-#define AIC_CLIDIV_SOURCE		0			// MCLK default 
+// Teensy I²S uses 32-bit slots, and if both SAI1 and SAI2
+// are in use then there are 5+2=7 2-channel data lines available.
+// SAI1 could use up to 4 codecs, if using 8o2i or 2o8i,
+// whereas SAI2 only has the option of 2o2i.
+//
+// Of course, the standard TA8x8-02 board needs significant modifications
+// to implement this topology, but you could always spin your own variant,
+// and it is of use if you wish to sync to an S/PDIF input; TDM can't
+// be used, as the recovered clock isn't fast enough. 
+#define AIC_MAX_I2S_CODECS		5		// four on SAI1, 1 one SAI2
+
+#define AIC_CODEC_CLOCK_SOURCE 	0 		// pll.dIV default (R101, p70)
+#define AIC_PLL_SOURCE			0		// MCLK default(R102, p70)
+#define AIC_CLIDIV_SOURCE		0		// MCLK default 
 
 #define AIC_MIC_USES_LINE_INPUT 		// reference hardware uses same input for both
-#define AIC_MIC_GAIN_DEFAULT 120		// steps
-#define AIC_LINE_GAIN_DEFAULT 0 		// steps
+#define AIC_MIC_GAIN_DEFAULT 	120		// steps
+#define AIC_LINE_GAIN_DEFAULT 	0 		// steps
 #define AIC_MAX_PGA_GAIN		(59.5)	// dB
 
-#define AIC_HPF_DISABLE			0x00		// Pwr on default. P29/52. R12. Bits R:4-5 and L:6-7
-#define AIC_HPF_0045				0x01  	// Set as default to remove DC offset: -3dB @ 0.2 Hz 
-#define AIC_HPF_0125				0x02		// -3dB @ 0.5 Hz
-#define AIC_HPF_025					0x03		// most aggressive -3dB @ 1 Hz
-#define AIC_HPF_UPPER 5000				  // arbitrary upper limit. Up to fS/2 may be OK
-#define AIC_PO_BG						0x02		// drive power off VCM output to band gap ref (p36)
-#define AIC_15V							0x40		// HP VCM 1.5V (p639)
-#define AIC_PO_100MS				0x60		// 100 mS HP power on
-#define AIC_PO_2S						0x90		// 2 Sec HP power on (avoid pop: slow charge output caps)
+#define AIC_HPF_DISABLE			0x00	// Pwr on default. P29/52. R12. Bits R:4-5 and L:6-7
+#define AIC_HPF_0045			0x01  	// Set as default to remove DC offset: -3dB @ 0.2 Hz 
+#define AIC_HPF_0125			0x02	// -3dB @ 0.5 Hz
+#define AIC_HPF_025				0x03	// most aggressive -3dB @ 1 Hz
+#define AIC_HPF_UPPER 			5000	// arbitrary upper limit. Up to fS/2 may be OK
+#define AIC_PO_BG				0x02	// drive power off VCM output to band gap ref (p36)
+#define AIC_15V					0x40	// HP VCM 1.5V (p639)
+#define AIC_PO_100MS			0x60	// 100 mS HP power on
+#define AIC_PO_2S				0x90	// 2 Sec HP power on (avoid pop: slow charge output caps)
 
 #define AIC_R12_HPF_MASK		0xf0
 #define AIC_R12_EFF_MASK		0x0C
-#define AIC_R12_DEMPH_MASK	0x05
+#define AIC_R12_DEMPH_MASK		0x05
 
 #define AIC_ALL_CODECS 			-1
 
@@ -242,6 +253,7 @@ protected:
 	void setDACfilter(int stage, const int *coefx, int8_t channel = -1, int8_t codec = -1);
 	
 private:
+public:
 	void resetCodecs(void); // reset all the codecs to a known state
 	bool writeRegister(uint8_t reg, uint8_t value, uint8_t codec);
 	void enablePll(bool enabled = false, int codec =  -1); // used only by enable()
