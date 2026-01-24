@@ -8,7 +8,7 @@ The library was created specifically for the associated four-CODEC Teensy Audio 
 
 The library contains drivers for the PCA9546 I2C multiplexer.
 
-It can also support a single AIC3104 in I2S mode.
+It can also support up to five AIC3104 devices in I2S mode.
 
 Page references are to the TLV320AIC3104 datasheet, Feb 2021.
 

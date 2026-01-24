@@ -253,7 +253,6 @@ protected:
 	void setDACfilter(int stage, const int *coefx, int8_t channel = -1, int8_t codec = -1);
 	
 private:
-public:
 	void resetCodecs(void); // reset all the codecs to a known state
 	bool writeRegister(uint8_t reg, uint8_t value, uint8_t codec);
 	void enablePll(bool enabled = false, int codec =  -1); // used only by enable()
@@ -276,7 +275,7 @@ public:
 	uint32_t _sampleRate = 44100;	
 	uint32_t _baseRate = 44100;
 	bool _dualRate = false; // true is untested
-	int _sampleLength = 16;			// only 16 bits tested
+	int _sampleLength = 16;			// only 16 and 32 bits tested
 	bool _usingMCLK = true;
 	dacPwr _dacPower = DAC_DEF;	
 	uint8_t _hpfDefault = AIC_HPF_DISABLE; // disabled
