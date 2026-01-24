@@ -28,6 +28,7 @@
 
 #include <Arduino.h>
 #include "input_tdm32.h"
+#if defined(I32_TO_F32_NORM_FACTOR)
 #include "output_tdm32.h"
 #if defined(KINETISK) || defined(__IMXRT1062__)
 #include "utility/imxrt_hw.h"
@@ -178,5 +179,5 @@ void AudioInputTDM_32::update(void)
 	}
 }
 
-
 #endif
+#endif // defined(__has_include) && __has_include(<Audiostream_F32.h>) 

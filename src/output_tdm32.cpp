@@ -31,6 +31,7 @@
 #if !defined(KINETISL)
 
 #include "output_tdm32.h"
+#if defined(F32_TO_I32_NORM_FACTOR) 
 #include "memcpy_audio.h"
 #include "utility/imxrt_hw.h"
 // kinetis.h does not included correctly
@@ -338,5 +339,7 @@ void AudioOutputTDM_32::config_tdm() // argument ignored for now
 	CORE_PIN20_CONFIG = 3;  //1:RX_SYNC
 #endif
 }
+
+#endif // defined(F32_TO_I32_NORM_FACTOR) 
 
 #endif
