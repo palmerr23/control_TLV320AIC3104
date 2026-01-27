@@ -36,6 +36,8 @@ bool AudioControlTLV320AIC3104::enable(int8_t codec)
 {
 	bool ok;
 
+	// this would be slow if executed, but isn't
+	// needed if begin() is called first
 	if(!_resetDone) // subsequent enable() calls should not reset codecs
 	{
 		reset();	
@@ -44,6 +46,7 @@ bool AudioControlTLV320AIC3104::enable(int8_t codec)
 		delay(100); // allow enough MCLK cycles for codecs to stabilise		
 		_resetDone = true;
 	}
+
 	(_verbose > 1) && fprintf(stderr, "Enable CODEC %i\n", codec);
 	if(codec > AIC_MAX_I2S_CODECS) // force TDM mode
 		if(_i2sMode != AICMODE_TDM)
@@ -87,7 +90,6 @@ void AudioControlTLV320AIC3104::resetCodecs(void)
 		writeR9(i); 	// DSP mode and slot
 		writeR10(i); 	// Only 16 bits implemented
 	}
-	//delay(100);
 }
 
 // Per-codec enable

@@ -6,38 +6,36 @@
 bool AudioControlTLV320AIC3104::muxWrite(uint8_t muxAddress, uint8_t value) 
 {
 	uint8_t error;
-digitalWriteFast(16,1);	
-  _i2c->beginTransmission(muxAddress);
-  _i2c->write(value);
-  error = _i2c->endTransmission(true);
-digitalWriteFast(16,0);	
-  return (error == 0);
+  	_i2c->beginTransmission(muxAddress);
+  	_i2c->write(value);
+  	error = _i2c->endTransmission(true);
+
+	return (error == 0);
 }
 
 
 uint8_t AudioControlTLV320AIC3104::muxRead(uint8_t muxAddress)
 { 
 	uint8_t val;
-  _i2c->requestFrom(muxAddress, (uint8_t)1);
-  val = _i2c->read();
-  return val;
+
+  	_i2c->requestFrom(muxAddress, (uint8_t)1);
+  	val = _i2c->read();
+  	return val;
 	
 }
 
 uint8_t AudioControlTLV320AIC3104::muxProbe() 
 {
 	_activeMuxes = 0;
-	//delay(100);
 	int result;
 	uint8_t addr;
+	
 	for(int i = 0; i < MUX_MAX; i++)
 	{
 		_mux_I2C_address[_activeMuxes] = 0;
 		addr = TCA9546_BASE_ADDRESS + i;
-digitalWriteFast(16,1);	
 		_i2c->beginTransmission(addr); 
 		result = _i2c->endTransmission(true);
-digitalWriteFast(16,0);	
 		if(result  == 0)
 		{
 			_mux_I2C_address[_activeMuxes] = TCA9546_BASE_ADDRESS + i;
@@ -71,11 +69,11 @@ void AudioControlTLV320AIC3104::muxDecode(uint8_t codec)
 {
 	if(codec == _lastCodec)
 		return;
+
 	uint8_t board = codec >> 2;
 	uint8_t channel = codec & 0x03;
 	uint8_t mask = 1 << channel; 
 	
-delayMicroseconds(100); // changed codec - debug only	
 	delayMicroseconds(I2C_COMPLETE_DELAY); // ensure last I2C transaction is complete
 	if(board == _lastBoard)
 	{
@@ -83,6 +81,7 @@ delayMicroseconds(100); // changed codec - debug only
 		delayMicroseconds(I2C_LONG_DELAY); // settle bus
 	}
 	else
+	{
 		for(int i = 0; i < _codecs / 4; i++) // 1:4 board select
 		{
 			delayMicroseconds(I2C_LONG_DELAY); // settle bus
@@ -90,8 +89,9 @@ delayMicroseconds(100); // changed codec - debug only
 				muxWrite(_mux_I2C_address[i], mask); 
 			else
 				muxWrite(_mux_I2C_address[i], 0); // disable all channels
-		delayMicroseconds(I2C_LONG_DELAY); // settle bus
+			delayMicroseconds(I2C_LONG_DELAY); // settle bus
 		}
+	}
 	_lastCodec = codec;
 	_lastBoard = board;
 }
