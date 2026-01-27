@@ -76,7 +76,10 @@ void AudioControlTLV320AIC3104::resetCodecs(void)
 		// Explicit Switch to config register page 0 and soft reset
 		writeRegister(0x00, 0x00, i); // code page 0
 		writeRegister(0x01, 0x80, i); // soft reset
-		delay(1); // reset timing?
+	}
+	delayMicroseconds(1500); // reset timing?
+	for(int i = 0; i < _codecs; i++)
+	{
 		// PLL
 		enablePll(!_usingMCLK, i);
 		// Safe I2S/TDM key parameters
@@ -84,7 +87,7 @@ void AudioControlTLV320AIC3104::resetCodecs(void)
 		writeR9(i); 	// DSP mode and slot
 		writeR10(i); 	// Only 16 bits implemented
 	}
-	delay(100);
+	//delay(100);
 }
 
 // Per-codec enable
@@ -109,11 +112,11 @@ bool AudioControlTLV320AIC3104::enableCodec(int8_t codec)
 
 		//	The ADC and DAC must be powered down when changing the sample rate.
 	_isRunning = true;		// set before writing R7
-		writeR7(codec);  // R7: Codec datapath
-		// power up ADC/DAC after changing sample rate
-		//	route the input 
-		//	and power up the ADC
-		//  then unmute the PGAs 
+	writeR7(codec);  // R7: Codec datapath
+	// power up ADC/DAC after changing sample rate
+	//	route the input 
+	//	and power up the ADC
+	//  then unmute the PGAs 
 	writeRegister(19, (_inputMode << 7) + 4, codec);	// Reg 19 (0x13): ADC Left power On; LIN1/2 to PGA, soft step on, 0dB, differential mode
 	writeRegister(22, (_inputMode << 7) + 4, codec);	// Reg 22 (0x16): ADC right power; LIN2 to PGA, soft step on, 0dB, differential mode
 
@@ -249,14 +252,14 @@ bool AudioControlTLV320AIC3104::stopAudio()
 	{
 		muxDecode(i);
 		volume(0, -1, i);	// Mute the DACs
-		writeRegister(15, 0x80, i);		// ADC L mute
+		writeRegister(15, 0x80, i);	// ADC L mute
 		writeRegister(16, 0x80, i);		
-		writeRegister(51, 0x08, i);		// HP OUT L mute
+		writeRegister(51, 0x08, i);	// HP OUT L mute
 		writeRegister(65, 0x08, i);		
 		delay(50); // wait for stepping to complete
 
-		writeRegister(1, 0x80, i);	  // Reset codec to defaults and power down DACs and ADCs, etc
-		writeRegister(8, 0x20, i); 		// Put codec DOUT in hi-z mode
+		writeRegister(1, 0x80, i);	// Reset codec to defaults and power down DACs and ADCs, etc
+		writeRegister(8, 0x20, i); 	// Put codec DOUT in hi-z mode
 	}
 	return true;
 }

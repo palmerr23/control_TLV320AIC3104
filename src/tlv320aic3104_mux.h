@@ -6,9 +6,11 @@
 bool AudioControlTLV320AIC3104::muxWrite(uint8_t muxAddress, uint8_t value) 
 {
 	uint8_t error;
+digitalWriteFast(16,1);	
   _i2c->beginTransmission(muxAddress);
   _i2c->write(value);
   error = _i2c->endTransmission(true);
+digitalWriteFast(16,0);	
   return (error == 0);
 }
 
@@ -25,15 +27,17 @@ uint8_t AudioControlTLV320AIC3104::muxRead(uint8_t muxAddress)
 uint8_t AudioControlTLV320AIC3104::muxProbe() 
 {
 	_activeMuxes = 0;
-	delay(100);
+	//delay(100);
 	int result;
 	uint8_t addr;
 	for(int i = 0; i < MUX_MAX; i++)
 	{
 		_mux_I2C_address[_activeMuxes] = 0;
 		addr = TCA9546_BASE_ADDRESS + i;
+digitalWriteFast(16,1);	
 		_i2c->beginTransmission(addr); 
 		result = _i2c->endTransmission(true);
+digitalWriteFast(16,0);	
 		if(result  == 0)
 		{
 			_mux_I2C_address[_activeMuxes] = TCA9546_BASE_ADDRESS + i;
@@ -45,7 +49,7 @@ uint8_t AudioControlTLV320AIC3104::muxProbe()
 			if(result  == 4)
 				fprintf(stderr, "Bus error on probe: 0x%2X \n", addr); 			
 		}		
-		delay(1);
+		delayMicroseconds(2); // table 6.6: tbuf > 1.3us
 	}
 	if(_activeMuxes * 4 != _codecs && _verbose)
 		fprintf(stderr, "Error: Supplied number of codecs %i does not match discovered %i\n", _codecs, _activeMuxes * 4); 
@@ -71,6 +75,7 @@ void AudioControlTLV320AIC3104::muxDecode(uint8_t codec)
 	uint8_t channel = codec & 0x03;
 	uint8_t mask = 1 << channel; 
 	
+delayMicroseconds(100); // changed codec - debug only	
 	delayMicroseconds(I2C_COMPLETE_DELAY); // ensure last I2C transaction is complete
 	if(board == _lastBoard)
 	{
