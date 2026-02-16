@@ -21,9 +21,9 @@ void AudioControlTLV320AIC3104::resetPin(uint8_t pin)
 void AudioControlTLV320AIC3104::reset()
 {
 	digitalWrite(_resetPin, LOW);
-	delay(1);
+	delayMicroseconds(2); // vague, but 10.3.1 says 10ns, so this ought to be plenty!
 	digitalWrite(_resetPin, HIGH);
-	delay(100); // allow CODECS to settle			
+	delayMicroseconds(1500); // allow CODECS to settle (guess: TI doesn't specify)			
 	_resetDone = true;	
 }
 uint8_t AudioControlTLV320AIC3104::begin()
@@ -31,9 +31,8 @@ uint8_t AudioControlTLV320AIC3104::begin()
 	// _i2c->setWireTimeout(AIC_I2C_TIMEOUT, true);
 	pinMode(_resetPin, OUTPUT);
 	digitalWrite(_resetPin, HIGH);
-	delay(500); // CODECS may still be resetting after power up
-	reset();
-	delay(500); // CODECS and muxes will reset
+	delayMicroseconds(3); 	// CODECS may still be resetting after power up
+	reset(); 				// includes settling time
 #ifdef SINGLE_CODEC
 	return true;
 #else
@@ -62,9 +61,9 @@ bool AudioControlTLV320AIC3104::writeRegister(uint8_t reg, uint8_t value, uint8_
 	//uint8_t buf[2] = { static_cast<uint8_t>(reg & 0xFF), static_cast<uint8_t>(value & 0xFF) };
 //if(reg == 9) fprintf(stderr, "W9[%i] 0x%02x\n", codec,value);
 	_i2c->beginTransmission(_codec_I2C_address); 
-	  bytes = _i2c->write(reg); // separate writes for register number and value
-	  bytes += _i2c->write(value); 
-  _i2c->endTransmission(true); 		
+		bytes = _i2c->write(reg); // separate writes for register number and value
+		bytes += _i2c->write(value); 
+  	_i2c->endTransmission(true); 		
 	if(bytes != 2)
 	{
 		fprintf(stderr, "Failed to write register %d on I2c codec\n", reg);
@@ -86,7 +85,7 @@ int AudioControlTLV320AIC3104::readRegister(uint8_t reg, uint8_t codec)
 	muxDecode(codec);
 #endif
 	_i2c->beginTransmission(_codec_I2C_address); 
-	 bytes = _i2c->write(reg); 
+		bytes = _i2c->write(reg); 
  	_i2c->endTransmission(false);  // or TLV will enter auto-increment mode and return value of reg+1
 	if(bytes != 1)
 		fprintf(stderr,"failed I2C read setup: reg %d on codec %i\n", reg, codec);
@@ -97,7 +96,7 @@ int AudioControlTLV320AIC3104::readRegister(uint8_t reg, uint8_t codec)
 		return -1;
 	}	
 	uint8_t val = (uint8_t)_i2c->read();
-  delayMicroseconds(I2C_COMPLETE_DELAY);
+  	delayMicroseconds(I2C_COMPLETE_DELAY);
 	return val;
 }
 
