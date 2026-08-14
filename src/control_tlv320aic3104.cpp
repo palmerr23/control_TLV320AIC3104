@@ -41,11 +41,11 @@ bool AudioControlTLV320AIC3104::enable(int8_t codec)
 	if(!_resetDone) // subsequent enable() calls should not reset codecs
 	{
 		reset();	
-		delay(100); // allow enough time for muxes to stabilise
-		resetCodecs();	// R8/9/10 (TDM 256 slot, slot ID, tristate DO when inactive)
-		delay(100); // allow enough MCLK cycles for codecs to stabilise		
+		delay(5); // allow enough time for muxes to stabilise
 		_resetDone = true;
 	}
+		resetCodecs();	// R8/9/10 & PLL (TDM 256 slot, slot ID, tristate DO when inactive, PLL)
+		delay(100); // allow enough MCLK cycles for codecs to stabilise		
 
 	(_verbose > 1) && fprintf(stderr, "Enable CODEC %i\n", codec);
 	if(codec > AIC_MAX_I2S_CODECS) // force TDM mode
