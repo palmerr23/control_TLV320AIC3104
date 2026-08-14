@@ -272,6 +272,6 @@ bool AudioControlTLV320AIC3104::stopAudio()
 #include "tlv320aic3104_pll.h" 
 #include "tlv320aic3104_filters.h" 
 #include "tlv320aic3104_DAC_filters.h"
-#include "agc.h"
+#include "tlv320aic3104_agc.h"
 
 

@@ -32,7 +32,7 @@ uint8_t AudioControlTLV320AIC3104::begin()
 	pinMode(_resetPin, OUTPUT);
 	digitalWrite(_resetPin, HIGH);
 	delayMicroseconds(3); 	// CODECS may still be resetting after power up
-	reset(); 				// includes settling time
+	// reset(); 				// moved to enable()
 #ifdef SINGLE_CODEC
 	return true;
 #else

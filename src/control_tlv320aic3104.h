@@ -173,7 +173,7 @@ public:
 	
 	// PLL 
 	unsigned long setPllClkIn(long sampRate = 44100); // potted Pll values - values will usually work if PLL is required (!useMCLK)
-	int setPll(uint32_t clk, uint32_t p, uint32_t r, uint32_t j,uint32_t d);
+	bool setPll(uint32_t clk, uint32_t p, uint32_t r, uint32_t j,uint32_t d, uint32_t q = 2); // default q works for most scenarios
 	aic_pll getPll(); // set specific variables, but do not update codec.
 	unsigned long getPllFsRef(); // return calculated fsRef for assigned pll values	
 	void i2cBus(TwoWire *i2c); // Wire.begin is user responsibility 
