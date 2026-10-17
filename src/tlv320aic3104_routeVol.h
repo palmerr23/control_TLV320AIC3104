@@ -12,7 +12,7 @@ bool AudioControlTLV320AIC3104::inputMode(inputModes mode, int8_t codec)
 {
 	return inputMode(mode, 3, codec);  //  both channels
 }
-// channel = 0 -> left; channel == 1 -> right; channel > 1 -> both
+// channel = 0 -> left; channel == 1 -> right; channel == -1 -> both
 bool AudioControlTLV320AIC3104::inputMode(inputModes mode, int8_t channel, int8_t codec)
 {
 	_inputMode = mode; 

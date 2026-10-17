@@ -27,19 +27,28 @@
  
  * This software is published under the MIT Licence
  * R. Palmer 2025
- */
 
-// VERSION 1.4 Nov 2025
-// Added AGC code and example
-// Changed L/R channel selection logic for most functions
-// Added channelNumbers enum
-// Updated examples to use AIC_ALL_CODECS and CH_BOTH
+
+ * VERSION 1.0 Jan 2026
+ *  Initial release
  
-// Version 1.3 June 2025
-// Second production release
-
-// Version 1.2 April 2025
-// First production release
+ * Version 1.2 April 2025
+ * First production release
+ 
+ * Version 1.3 August 2025
+ *  Updated pll code: added q = 2 parameter
+ *** breaking change *** return value is now bool and true if successful.
+ 
+ * Version 1.4 Nov 2025
+ * Added AGC code and example
+ * Changed L/R channel selection logic for most functions
+ * Added channelNumbers enum
+ * Updated examples to use AIC_ALL_CODECS and CH_BOTH
+ 
+ * Version 1.5
+ * Minor changes to comments re multiple codec and channel function arguments
+ 
+ */
 
 #ifndef _TLV320AIC3104_H
 #define _TLV320AIC3104_H
@@ -139,7 +148,7 @@ enum codec_channels {CH_LEFT = 0, CH_RIGHT = 1, CH_BOTH = -1};
 enum agcTarget {AGCT5_5, AGCT8, AGCT10, AGCT12, AGCT14, AGCT17, AGCT20, AGCT24};
 enum agcAttack {AGCA8, AGCA11, AGCA16, AGCA20};
 enum agcDecay {AGCD100, AGCD200, AGCD400, AGCD500};
-// AGC max gain is (2 * dB)
+// AGC max gain is 0.5 dB steps up from 0dB 
 // AGC Noise Threshold is (-dB - 28)/2. 0 is OFF
 enum agcHysteresis {AGCH1, AGCH2, AGCH3, AGCH_OFF};
 // Input modes
@@ -173,7 +182,7 @@ public:
 	
 	// PLL 
 	unsigned long setPllClkIn(long sampRate = 44100); // potted Pll values - values will usually work if PLL is required (!useMCLK)
-	bool setPll(uint32_t clk, uint32_t p, uint32_t r, uint32_t j,uint32_t d, uint32_t q = 2); // default q works for most scenarios
+	bool setPll(uint32_t clk, uint32_t p, uint32_t r, uint32_t j, uint32_t d, uint32_t q = 2);
 	aic_pll getPll(); // set specific variables, but do not update codec.
 	unsigned long getPllFsRef(); // return calculated fsRef for assigned pll values	
 	void i2cBus(TwoWire *i2c); // Wire.begin is user responsibility 
@@ -181,7 +190,7 @@ public:
 	
 /* CODEC
 	* default arguments set all channels in all CODECs
-	* codec == -1 sets all declared codecs
+	* codec == -1 sets all codecs declared in constructor
 	* channel == -1 sets both channels in a CODEC
 	*/
 	bool enableCodec(int8_t codec); // enable a single codec - no reset

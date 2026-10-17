@@ -15,7 +15,7 @@ Note (PS):
 */
 
 #define xscalex 32768.0 // 16-bits 
-
+// channel = 0 -> left; channel == 1 -> right; channel == -1 -> both
 void AudioControlTLV320AIC3104::setHighpass(int stage, float frequency, float q, int8_t channel, int8_t codec) 
 {
 		int coef[5];
