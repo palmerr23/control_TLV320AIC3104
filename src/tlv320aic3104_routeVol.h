@@ -113,6 +113,44 @@ uint8_t AudioControlTLV320AIC3104::gainInteger(uint8_t gainStep, int8_t channel,
 	return gainStep;
 }
 
+// pad the ADC inputs to increase the maximum input level to 2.9V p-p
+bool AudioControlTLV320AIC3104::pad(bool padOn, int8_t channel, int8_t codec)
+{
+	_padOn = padOn; 
+	if (!_isRunning) // if issued before enable() this just sets the default pad level
+		return false;
+	uint8_t start, end, rVal;
+
+	if(codec < 0)
+	{
+		start = 0;
+		end = _codecs;
+	}
+	else
+	{
+		start= codec;
+		end = codec+1;
+	}
+
+	for(int i = start; i < end; i++)
+	{
+		if(channel < 0 || !channel)
+		{
+			rVal = readRegister(19, i);
+			Serial.printf("rVal 0x%02x -> ", rVal);
+			rVal = (padOn) ? rVal | (0x3 << 3) : rVal & ~(0xf << 3);
+			Serial.printf("0x%02x\n", rVal);
+			writeRegister(19, rVal, i);
+		}
+		if(channel)
+		{
+			rVal = readRegister(22, i);
+			rVal = (padOn) ? rVal | (0x3 << 3) : rVal & ~(0xf << 3);
+			writeRegister(22, rVal, i);
+		}
+	}
+	return true;
+}
 
 /************ OUTPUTS **********************/
 // Change DAC quiescent current

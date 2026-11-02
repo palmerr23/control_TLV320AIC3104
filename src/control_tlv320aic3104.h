@@ -47,7 +47,9 @@
  
  * Version 1.5
  * Minor changes to comments re multiple codec and channel function arguments
- 
+ * HP output short circuit current limit protection is enabled
+ * AGC example includes both Limit + Gate and Hi-Lo AGC options
+ * pad() implemented
  */
 
 #ifndef _TLV320AIC3104_H
@@ -139,12 +141,11 @@
 #define AIC_R12_EFF_MASK		0x0C
 #define AIC_R12_DEMPH_MASK		0x05
 
-#define AIC_ALL_CODECS 			-1
-
 #define TCA9546_BASE_ADDRESS 					 0x70
 
-enum dacPwr{DAC_DEF = 0, DAC_50 = 0x40, DAC_100 = 0xc0};
-enum codec_channels {CH_LEFT = 0, CH_RIGHT = 1, CH_BOTH = -1};
+#define AIC_ALL_CODECS 			-1
+enum codec_channels {CH_LEFT = 0, CH_RIGHT = 1, CH_BOTH = -1}; 
+enum channelNumbers {LEFT = 0, RIGHT = 1, BOTH = -1}; // deprecated, use codec_channels
 enum agcTarget {AGCT5_5, AGCT8, AGCT10, AGCT12, AGCT14, AGCT17, AGCT20, AGCT24};
 enum agcAttack {AGCA8, AGCA11, AGCA16, AGCA20};
 enum agcDecay {AGCD100, AGCD200, AGCD400, AGCD500};
@@ -153,7 +154,8 @@ enum agcDecay {AGCD100, AGCD200, AGCD400, AGCD500};
 enum agcHysteresis {AGCH1, AGCH2, AGCH3, AGCH_OFF};
 // Input modes
 enum inputModes {AIC_SINGLE, AIC_DIFF};
-enum channelNumbers {LEFT = 0, RIGHT = 1, BOTH = 3};
+enum dacPwr{DAC_DEF = 0, DAC_50 = 0x40, DAC_100 = 0xc0};
+
 struct aic_pll {
 	unsigned long clk, p, r, j, d, q;
 	float 	k;
@@ -182,7 +184,7 @@ public:
 	
 	// PLL 
 	unsigned long setPllClkIn(long sampRate = 44100); // potted Pll values - values will usually work if PLL is required (!useMCLK)
-	bool setPll(uint32_t clk, uint32_t p, uint32_t r, uint32_t j, uint32_t d, uint32_t q = 2);
+	bool setPll(uint32_t clk, uint32_t p, uint32_t r, uint32_t j, uint32_t d, uint32_t q = 2); // default q works for most scenarios
 	aic_pll getPll(); // set specific variables, but do not update codec.
 	unsigned long getPllFsRef(); // return calculated fsRef for assigned pll values	
 	void i2cBus(TwoWire *i2c); // Wire.begin is user responsibility 
@@ -236,6 +238,7 @@ public:
  * inputLevel: -59.5 .. 0
  */
 	uint8_t gain(float gainVal, int8_t channel = -1, int8_t codec = -1); 	// 0..60dB gain range
+	bool pad(bool padOn,  int8_t channel = -1, int8_t codec = -1); // add 4.5dB pad. Raises max input level to 2.9vp-p
 	bool inputLevel(float gainVal, int8_t channel, int8_t codec); // 0 to -59.5dB
 	bool inputLevel(float gainVal){ return inputLevel(gainVal, -1, -1); } // see AudioControl.h
 
@@ -252,6 +255,7 @@ public:
 	// only used for debugging
 	void muxDecode(uint8_t codec);
 	int readRegister(uint8_t reg, uint8_t codec);
+
 	void setRegPage(uint8_t newPage, int8_t codec = -1); // change the page register
 protected:
 	TwoWire *_i2c = &Wire;
@@ -295,6 +299,7 @@ private:
 	bool _reSync = false;	
 	bool _isRunning;
 	int _verbose = 0;
+	bool _padOn = false;
 
 	uint32_t _I2Cclockrate = 400000; 
 	// defaults R3..R7, R11: P=8, R=1, J=1, D=0, Q=2, (K=0.0)

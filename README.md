@@ -12,7 +12,7 @@ It can also support up to five AIC3104 devices in I2S mode.
 
 Page references are to the TLV320AIC3104 datasheet, Feb 2021.
 
-V1.3
+Current release V1.5
 
 ## Compatibility
 Arduino 4.x with Teensyduino 1.59 or later and the supplied TDMA driver.
@@ -145,10 +145,10 @@ Values outside these ranges are constrained.
 
 When called without channel and codec arguments, all codecs and channels are affected. 
 
-### pad(float pad, int8_t channel, int8_t codec)
-Enable the ADC input pad.
+### pad(bool pad, int8_t channel, int8_t codec)
+Enable the ADC input pad of 4.5dB
 
-Value from 0 to -12 in 1.5 dB steps
+Increases the maximum input level to 2.9Vp-p (1V RMS) before distortion.
 
 ### adcHPF(int frequency, int8_t channel = -1, int8_t codec = -1)
 HPF frequencies may be set between 1Hz and 5kHz.

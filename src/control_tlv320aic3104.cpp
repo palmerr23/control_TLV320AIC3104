@@ -119,8 +119,9 @@ bool AudioControlTLV320AIC3104::enableCodec(int8_t codec)
 	//	route the input 
 	//	and power up the ADC
 	//  then unmute the PGAs 
-	writeRegister(19, (_inputMode << 7) + 4, codec);	// Reg 19 (0x13): ADC Left power On; LIN1/2 to PGA, soft step on, 0dB, differential mode
-	writeRegister(22, (_inputMode << 7) + 4, codec);	// Reg 22 (0x16): ADC right power; LIN2 to PGA, soft step on, 0dB, differential mode
+	uint8_t padVal = (_padOn) ? (0x3 <<3) : 0; // set PAD to -4.5dB (raises mAx input level to 2.9V p-p before distortion
+	writeRegister(19, (_inputMode << 7) + 4 + padVal, codec);	// Reg 19 (0x13): ADC Left power On; LIN1/2 to PGA, soft step on, 0dB, differential mode
+	writeRegister(22, (_inputMode << 7) + 4 + padVal, codec);	// Reg 22 (0x16): ADC right power; LIN2 to PGA, soft step on, 0dB, differential mode
 
 	writeRegister(15, _gainStep, codec);	// Reg 15: ADC PGA R to default, un-muted
 	writeRegister(16, _gainStep, codec);	// Reg 16: ADC PGA L to default, un-muted
@@ -143,7 +144,8 @@ bool AudioControlTLV320AIC3104::enableCodec(int8_t codec)
 	writeRegister(109, _dacPower, codec);	// Reg 109: DAC Quiescent Current Adjustment, default 50% increase
 	writeRegister(37, 0xC0, codec);			// Reg 37 (0x25): DAC power/driver register: DAC power on (left and right)
 																			// HPLCOM = -HPLOUT 
-																			// R38: HPRCOM = -HPROUT is default 
+	writeRegister(38, 0x02, codec);			// R38: HPRCOM = -HPROUT is default
+																			// turn on short circuit protection (current limit option)
 																			// R41 defaults: DACs to _L1/_R1 paths, independent volume controls
 	writeRegister(40, AIC_15V, codec);	// Reg 40 (0x28): High-Power Output Stage, 1.5V, soft step
 	writeRegister(42, AIC_PO_2S + AIC_PO_BG, codec);	// Reg 42 (0x2A): Output Driver Pop Reduction, 2 Secs, band gap VCM
